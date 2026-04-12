@@ -52,14 +52,14 @@ const Finder = () => {
       <div id="window-header" className="window-drag-handle">
         <WindowControls target="finder" />
         <h2 className="font-bold">
-          Jaswanth's Portfolio
+          XBOY Portfolio
         </h2>
         <Search className="icon" />
       </div>
       <div className="flex bg-white h-full">
         <div className="sidebar">
           {renderList("Favorites", Object.values(locations))}
-          {renderList("My Projects", locations.work.children)}
+          {/* {renderList("My Projects", locations.work.children)} */}
         </div>
         <ul className="content">
           {activeLocation.children.map((item) => (

@@ -1,10 +1,19 @@
 import { navIcons, navLinks, locations } from "#constants";
 import useWindowStore from '#store/window';
 import useLocationStore from '#store/location';
-import { useEffect, useRef, useCallback } from "react";
+import { useSiteStore } from '../store/siteStore';
+import { useEffect, useRef, useCallback, useMemo } from "react";
 import React from "react";
 import Clock from './Clock';
 import NavLink from "./NavLink";
+import {
+  Instagram,
+  Youtube,
+  Github,
+  Linkedin,
+  Mail,
+  Music as MusicIcon // Renamed to avoid confusion with window types
+} from 'lucide-react';
 
 // Only import heavy dependencies on desktop
 const isMobile = typeof window !== 'undefined' && window.innerWidth <= 640;
@@ -13,6 +22,42 @@ const NavBar = React.memo(() => {
 
   const openWindow = useWindowStore(state => state.openWindow);
   const setActiveLocation = useLocationStore(state => state.setActiveLocation);
+  const { data: siteData } = useSiteStore();
+
+  const activeSocials = useMemo(() => {
+    if (!siteData?.socials) return [];
+
+    const platforms = [
+      { key: 'github', icon: <Github size={18} />, label: 'GitHub' },
+      { key: 'linkedin', icon: <Linkedin size={18} />, label: 'LinkedIn' },
+      { key: 'instagram', icon: <Instagram size={18} />, label: 'Instagram' },
+      { key: 'youtube', icon: <Youtube size={18} />, label: 'YouTube' },
+      { key: 'email', icon: <Mail size={18} />, label: 'Email', isMail: true },
+    ];
+
+    return platforms
+      .filter(p => siteData.socials[p.key])
+      .map(p => ({
+        ...p,
+        url: p.isMail ? `mailto:${siteData.socials[p.key]}` : siteData.socials[p.key]
+      }));
+  }, [siteData?.socials]);
+
+  const activeMusicPlatforms = useMemo(() => {
+    if (!siteData?.socials) return [];
+
+    const platforms = [
+      { key: 'spotify', label: 'Spotify', icon: 'https://cdn.simpleicons.org/spotify/1c1c1c' },
+      { key: 'appleMusic', label: 'Apple Music', icon: 'https://cdn.simpleicons.org/apple/1c1c1c' },
+      { key: 'ytMusic', label: 'YouTube Music', icon: 'https://cdn.simpleicons.org/youtubemusic/1c1c1c' },
+      { key: 'soundcloud', label: 'SoundCloud', icon: 'https://cdn.simpleicons.org/soundcloud/1c1c1c' },
+      { key: 'amazonMusic', label: 'Amazon Music', icon: 'https://img.icons8.com/?size=100&id=xdR2e86qm3ed&format=png&color=000000' },
+    ];
+
+    return platforms
+      .filter(p => siteData.socials[p.key])
+      .map(p => ({ ...p, url: siteData.socials[p.key] }));
+  }, [siteData?.socials]);
 
   const wrapperRef = useRef(null);
   const gifRef = useRef(null);
@@ -100,7 +145,7 @@ const NavBar = React.memo(() => {
         <div className="logo-portfolio-container" ref={logoPortfolioRef}>
           <img src="/images/logo.svg" alt="logo" />
           <div className="portfolio-wrapper" ref={wrapperRef}>
-            <p className="font-bold portfolio-text">Jaswanth's Portfolio</p>
+            <p className="font-bold portfolio-text">XBOY Portfolio</p>
           </div>
         </div>
 
@@ -111,13 +156,39 @@ const NavBar = React.memo(() => {
         )}
 
         <ul>
-          {navLinks.map((link) => (
-            <NavLink key={link.id} {...link} onClick={() => handleNavLinkClick(link.type)} />
-          ))}
+          {activeMusicPlatforms.length > 0
+            ? activeMusicPlatforms.map(platform => (
+              <NavLink
+                key={platform.key}
+                name={platform.label}
+                icon={platform.icon}
+                link={platform.url}
+              />
+            ))
+            : navLinks.map(link => (
+              <NavLink key={link.id} {...link} onClick={() => handleNavLinkClick(link.type)} />
+            ))
+          }
         </ul>
       </div>
       <div>
-        <ul>
+        <ul className="flex items-center gap-4 border-r border-[#1c1c1c]/10 pr-4 mr-1">
+          {activeSocials.map(social => (
+            <li key={social.key}>
+              <a
+                href={social.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[#1c1c1c]/60 hover:text-[#1c1c1c] transition-all hover:scale-110 flex items-center justify-center p-0.5"
+                title={social.label}
+              >
+                {social.icon}
+              </a>
+            </li>
+          ))}
+        </ul>
+
+        <ul className="flex items-center">
           {navIcons.map(({ id, img, type, action }) => (
             <li key={id} onClick={() => handleIconClick({ type, action })}>
               <img

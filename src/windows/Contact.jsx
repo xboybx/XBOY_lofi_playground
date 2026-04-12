@@ -1,6 +1,6 @@
 import { WindowControls } from '#components'
-import { socials } from '#constants'
 import WindowWrapper from '#hoc/WindowWrapper'
+import { useSiteStore } from '../store/siteStore'
 import useWindowStore from '#store/window'
 import { Mail } from 'lucide-react/dist/esm/icons'
 import React, { useEffect, useState } from 'react'
@@ -8,6 +8,7 @@ import { useForm } from 'react-hook-form'
 import clsx from 'clsx'
 
 const Contact = () => {
+  const { data: siteData } = useSiteStore();
   const isMaximized = useWindowStore(state => state.windows.contact?.isMaximized);
   const email = 'j.jaswanth@icloud.com'
   const [showModal, setShowModal] = useState(false)
@@ -106,7 +107,7 @@ const Contact = () => {
       </div>
       <div className='p-5 space-y-5'>
         <img
-          src='https://ik.imagekit.io/mtkm3escy/protfolio%20pic.JPG?updatedAt=1763837489716'
+          src={siteData?.about?.avatarUrl || 'https://ik.imagekit.io/mtkm3escy/protfolio%20pic.JPG?updatedAt=1763837489716'}
           alt='Jaswanth'
           loading='lazy'
           className={clsx(
@@ -124,7 +125,11 @@ const Contact = () => {
           j.jaswanth@icloud.com
         </p>
         <ul>
-          {socials.map(({id, bg, link, icon, text}) => (
+          {[
+            { id: 'insta', bg: '#E4405F', link: siteData?.socials?.instagram, icon: '/icons/instagram.svg', text: 'Instagram' },
+            { id: 'yt', bg: '#FF0000', link: siteData?.socials?.youtube, icon: '/icons/youtube.svg', text: 'YouTube' },
+            { id: 'spot', bg: '#1DB954', link: siteData?.socials?.spotify, icon: '/icons/spotify.svg', text: 'Spotify' },
+          ].map(({id, bg, link, icon, text}) => (
             <li key={id} style={{backgroundColor: bg}}>
               <a 
                 href={link} 

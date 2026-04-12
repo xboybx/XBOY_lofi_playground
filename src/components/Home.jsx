@@ -6,7 +6,7 @@ import clsx from "clsx";
 import { Draggable } from "gsap/Draggable";
 import React, { useCallback } from "react";
 
-const projects = locations.work?.children ?? [];
+const projects = []; // Removed projects from locations.work?.children by user request
 
 const Home = React.memo(() => {
 

@@ -3,15 +3,31 @@ import { WindowControls } from '#components'
 import WindowWrapper from '#hoc/WindowWrapper'
 import useWindowStore from '#store/window'
 
+import { useSiteStore } from '../store/siteStore'
+
 const Text = () => {
+  const { data: siteStoreData } = useSiteStore();
   const { windows } = useWindowStore()
   const data = windows.txtfile?.data;
   const isMaximized = !!windows.txtfile?.isMaximized;
   // Hooks must be declared unconditionally at the top level
 
+
+
   if (!data) return null
 
-  const { name, image, subtitle, description } = data
+  let { name, image, subtitle, description } = data
+
+  if (name === 'AboutMe.txt') {
+    description = [
+      siteStoreData?.about?.description,
+      siteStoreData?.about?.paragraph1,
+      siteStoreData?.about?.paragraph2,
+      siteStoreData?.about?.paragraph3
+    ].filter(Boolean);
+    image = siteStoreData?.about?.avatarUrl;
+    subtitle = siteStoreData?.about?.subtitle;
+  }
 
   return (
     <div className="flex flex-col h-full">

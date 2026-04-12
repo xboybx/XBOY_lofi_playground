@@ -1,5 +1,6 @@
-import React, { Suspense, lazy, useEffect, useState } from 'react'
+import React, { Suspense, lazy, useEffect } from 'react'
 import useWindowStore from '#store/window'
+import { useSiteStore } from './store/siteStore'
 
 // Detect mobile once
 const isMobile = typeof window !== 'undefined' && window.innerWidth <= 640;
@@ -36,22 +37,32 @@ if (!isMobile) {
   });
 }
 
+const isVideoUrl = (url) => url && /\.(mp4|webm|mkv|ogg)$/i.test(url);
+
 const App = () => {
   const { windows } = useWindowStore();
-  
+
+  // Read wallpaper directly from store — empty string = show CSS gradient
+  const wallpaperUrl = useSiteStore(state => state.data.wallpaperUrl);
+  const hasWallpaper = Boolean(wallpaperUrl);
+  const isVideoWallpaper = isVideoUrl(wallpaperUrl);
+
+  // Apply image wallpaper via CSS variable whenever URL changes
   useEffect(() => {
-    const saved = localStorage.getItem('wallpaperUrl');
-    if (saved && !isMobile) { // Only apply custom wallpaper on desktop
-      document.documentElement.style.setProperty(
-        '--wallpaper-url', `url('${encodeURI(saved).replace(/'/g, "%27")}')`
-      );
+    if (isMobile) return;
+    if (hasWallpaper && !isVideoWallpaper) {
+      // Image/GIF wallpaper
+      document.documentElement.style.setProperty('--wallpaper-url', `url("${wallpaperUrl}")`);
+    } else {
+      // Video wallpaper OR no wallpaper — clear the CSS variable so gradient shows
+      document.documentElement.style.setProperty('--wallpaper-url', 'none');
     }
-  }, []);
+  }, [wallpaperUrl, hasWallpaper, isVideoWallpaper]);
 
   useEffect(() => {
     // Skip preloading on mobile to improve initial load
     if (isMobile) return;
-    
+
     const preloadModules = () => {
       // Preload modules during idle time for faster window opens
       // but don't render until user actually opens them
@@ -75,9 +86,26 @@ const App = () => {
       setTimeout(preloadModules, 100);
     }
   }, []);
-  
+
   return (
     <>
+      {/* Permanent Skeleton Loader Base Layer */}
+      {!isMobile && (
+        <div className="fixed inset-0 w-[100dvw] h-[100dvh] -z-[60] skeleton-bg" />
+      )}
+
+      {/* Video wallpaper — only rendered when a video URL is saved */}
+      {isVideoWallpaper && !isMobile && (
+        <video
+          key={wallpaperUrl}
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="fixed inset-0 w-[100dvw] h-[100dvh] object-cover -z-50 pointer-events-none"
+          src={wallpaperUrl}
+        />
+      )}
       <main>
         <Suspense fallback={<div />}>
           <NavBar />

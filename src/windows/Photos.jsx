@@ -1,9 +1,15 @@
 import { WindowControls } from '#components';
-import { gallery, photosLinks } from '#constants';
+import { photosLinks } from '#constants';
+import { useSiteStore } from '../store/siteStore';
 import WindowWrapper from '#hoc/WindowWrapper';
 import useWindowStore from '#store/window';
 import { Mail, Search } from 'lucide-react/dist/esm/icons';
+
+const isVideo = (url) => /\.(mp4|webm|mkv|ogg)$/i.test(url);
+
 const Photos = () => {
+  const { data } = useSiteStore();
+  const gallery = data?.gallery || [];
 
   const { openWindow, focusWindow } = useWindowStore();
 
@@ -31,8 +37,8 @@ const Photos = () => {
             Photos
           </h2>
           <ul>
-            {photosLinks.map(({id, icon, title}) => (
-              <li 
+            {photosLinks.map(({ id, icon, title }) => (
+              <li
                 key={id}
                 onClick={(e) => {
                   e.stopPropagation();
@@ -47,12 +53,12 @@ const Photos = () => {
         </div>
         <div className='gallery'>
           <ul>
-            {gallery.map(({id, img}) => (
-              <li 
+            {gallery.map(({ id, img }) => (
+              <li
                 key={id}
                 onClick={(e) => {
                   e.stopPropagation();
-                  openWindow('imgfile' , {
+                  openWindow('imgfile', {
                     id,
                     name: "Gallery Image",
                     icon: "/images/image.png",
@@ -62,11 +68,22 @@ const Photos = () => {
                   });
                 }}
               >
-                <img
-                  src={img}
-                  alt={`Gallery image ${id}`}
-                  loading='lazy'
-                />
+                {isVideo(img) ? (
+                  <video
+                    src={img}
+                    className="w-full rounded-lg"
+                    muted
+                    loop
+                    onMouseEnter={(e) => e.target.play()}
+                    onMouseLeave={(e) => { e.target.pause(); e.target.currentTime = 0; }}
+                  />
+                ) : (
+                  <img
+                    src={img}
+                    alt={`Gallery image ${id}`}
+                    loading='lazy'
+                  />
+                )}
               </li>
             ))}
           </ul>
@@ -76,6 +93,6 @@ const Photos = () => {
   )
 }
 
-const PhotosWindow = WindowWrapper( Photos, "photos")
+const PhotosWindow = WindowWrapper(Photos, "photos")
 
 export default PhotosWindow;

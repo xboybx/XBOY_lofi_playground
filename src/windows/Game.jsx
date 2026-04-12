@@ -5,15 +5,23 @@ import useWindowStore from '#store/window'
 import useAudioStore from '#store/audio'
 import { useEffect, useRef, useState } from 'react'
 import clsx from 'clsx'
-
 const games = [
   {
-    id: 'krunker',
-    name: 'Krunker (FPS)',
-    icon: 'https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/1408720/header.jpg?t=1756940117',
-    url: 'https://www.crazygames.com/embed/krunker-io',
-    description: 'Multiplayer CoD style shooter',
+    id: 'kirka',
+    name: 'Kirka.io (FPS)',
+    icon: 'https://imgs.crazygames.com/kirka-io_16x9/20260116015838/kirka-io_16x9-cover?metadata=none&quality=60&height=4017',
+    url: 'https://kirka.io/',
+    description: 'Voxel-style CoD shooter',
     category: 'arcade'
+  },
+
+  {
+    id: 'townscaper',
+    name: 'Townscaper',
+    icon: 'https://design-milk.com/images/2020/07/Townscaper-4.jpg',
+    url: 'https://oskarstalberg.com/Townscaper/',
+    description: 'Relaxing city builder toy',
+    category: 'simulation'
   },
   {
     id: 'slowroads',
@@ -49,11 +57,11 @@ const Game = () => {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const isOpen = windows['game']?.isOpen;
   const isMaximized = windows['game']?.isMaximized;
-  
-  const filteredGames = selectedCategory === 'all' 
-    ? games 
+
+  const filteredGames = selectedCategory === 'all'
+    ? games
     : games.filter(g => g.category === selectedCategory);
-  
+
   const isFocused = (() => {
     const openWindows = Object.values(windows).filter(w => w.isOpen);
     const maxZ = openWindows.reduce((m, w) => Math.max(m, w.zIndex), 0);
@@ -75,15 +83,15 @@ const Game = () => {
   useEffect(() => {
     if (!isOpen && iframeRef.current) {
       pause();
-      
+
       try {
-        iframeRef.current.contentWindow?.postMessage({ 
+        iframeRef.current.contentWindow?.postMessage({
           type: 'pause-all-audio'
         }, '*');
       } catch (e) {
         // Ignore postMessage errors
       }
-      
+
       const timeoutId = setTimeout(() => {
         if (iframeRef.current && !isOpen) {
           const src = iframeRef.current.src;
@@ -91,7 +99,7 @@ const Game = () => {
           iframeRef.current.dataset.originalSrc = src;
         }
       }, 100);
-      
+
       return () => clearTimeout(timeoutId);
     } else if (isOpen && iframeRef.current?.dataset.originalSrc) {
       const src = iframeRef.current.dataset.originalSrc;
@@ -104,12 +112,12 @@ const Game = () => {
   useEffect(() => {
     return () => {
       pause();
-      
+
       if (iframeRef.current) {
         try {
-          iframeRef.current.contentWindow?.postMessage({ 
+          iframeRef.current.contentWindow?.postMessage({
             type: 'pause-all-audio',
-            action: 'stop-audio' 
+            action: 'stop-audio'
           }, '*');
         } catch (error) {
           // Ignore errors on unmount
@@ -124,8 +132,8 @@ const Game = () => {
 
   return (
     <>
-      <div 
-        id='window-header' 
+      <div
+        id='window-header'
         className='window-drag-handle'
       >
         <WindowControls target="game" />
@@ -158,7 +166,7 @@ const Game = () => {
 
       {!selectedGame ? (
         // Game Selector View with Sidebar
-        <div className="flex bg-white flex-1 overflow-hidden">
+        <div className="flex bg-white flex-1 overflow-hidden min-h-0">
           {!isFocused && (
             <button
               type="button"
@@ -202,7 +210,7 @@ const Game = () => {
           </div>
 
           {/* Content Area */}
-          <div className="content flex-1 p-6 bg-white overflow-y-auto">
+          <div className="content flex-1 p-6 bg-white overflow-y-scroll">
             <div className="grid grid-cols-2 gap-6 auto-rows-max">
               {filteredGames.map((game) => (
                 <button
@@ -236,7 +244,7 @@ const Game = () => {
         </div>
       ) : (
         // Game View - takes full space
-        <div className={`relative flex-1 w-full overflow-hidden bg-white ${isMaximized ? 'h-full' : 'h-152'}`}>
+        <div className={`relative flex-1 w-full overflow-hidden bg-white min-h-0 ${isMaximized ? 'h-full' : 'h-full'}`}>
           {!isFocused && (
             <button
               type="button"

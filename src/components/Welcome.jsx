@@ -1,4 +1,5 @@
 import React, { useRef, useEffect } from "react";
+import MusicPopup from "./MusicPopup";
 
 const isMobile = typeof window !== 'undefined' && window.innerWidth <= 640;
 
@@ -140,14 +141,14 @@ const Welcome = React.memo(() => {
       <section id="welcome" ref={welcomeContainerRef}>
         <p ref={subtitleRef}>
           {renderText(
-            "Hey, I'm Jaswanth! Welcome to my",
+            "welcome to my lofi space",
             "text-xl sm:text-3xl font-georama text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)] tracking-wide",
             100
           )}
         </p>
         <h1 ref={titleRef} className="mt-7">
           {renderText(
-            "portfolio",
+            "XBOY",
             "text-8xl sm:text-7xl md:text-9xl italic font-georama text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)] tracking-wide" 
           )}
         </h1>
@@ -157,6 +158,8 @@ const Welcome = React.memo(() => {
           <a href="https://www.jjaswanth.in" target="_blank" rel="noopener noreferrer" className="flex-center text-blue-100">For Mobile Devices visit here</a>
         </div>
       </section>
+      
+      <MusicPopup />
       
       {/* Placeholder for welcome text */}
       {!isMobile && <div className="welcome-placeholder" ref={welcomePlaceholderRef}></div>}

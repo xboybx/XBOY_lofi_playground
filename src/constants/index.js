@@ -1,18 +1,33 @@
 const navLinks = [
   {
     id: 1,
-    name: "Projects",
-    type: "finder",
+    name: "Spotify",
+    icon: "https://cdn.simpleicons.org/spotify/1c1c1c",
+    link: "https://open.spotify.com",
+  },
+  {
+    id: 2,
+    name: "Apple Music",
+    icon: "https://cdn.simpleicons.org/apple/1c1c1c",
+    link: "https://music.apple.com",
   },
   {
     id: 3,
-    name: "Contact",
-    type: "contact",
+    name: "YT Music",
+    icon: "https://cdn.simpleicons.org/youtubemusic/1c1c1c",
+    link: "https://music.youtube.com",
   },
   {
     id: 4,
-    name: "Resume",
-    type: "resume",
+    name: "SoundCloud",
+    icon: "https://cdn.simpleicons.org/soundcloud/1c1c1c",
+    link: "https://soundcloud.com",
+  },
+  {
+    id: 5,
+    name: "Amazon Music",
+    icon: "https://img.icons8.com/?size=100&id=xdR2e86qm3ed&format=png&color=000000",
+    link: "https://music.amazon.com",
   },
 ];
 
@@ -53,7 +68,7 @@ const dockApps = [
   },
   {
     id: "safari",
-    name: "Articles", // was "Safari"
+    name: "Discover", // was "Focus"
     icon: "safari.webp",
     canOpen: true,
   },
@@ -71,7 +86,7 @@ const dockApps = [
   },
   {
     id: "terminal",
-    name: "Skills", // was "Terminal"
+    name: "Focus", // was "Skills"
     icon: "terminal.webp",
     canOpen: true,
   },
@@ -103,7 +118,7 @@ const dockApps = [
 ];
 
 const blogPosts = [
-  
+
   {
     id: 2,
     date: "July 5, 2025",
@@ -114,7 +129,7 @@ const blogPosts = [
   {
     id: 1,
     date: "June 10, 2025",
-    title:"Developing Dynamic Web Experiences Using React",
+    title: "Developing Dynamic Web Experiences Using React",
     image: "/images/blog1.png",
     link: "https://swastiksharma15.github.io/Portfolio/blogs.html#post-1",
   },
@@ -779,7 +794,7 @@ const TRASH_LOCATION = {
 };
 
 export const locations = {
-  work: WORK_LOCATION,
+  // work: WORK_LOCATION,
   about: ABOUT_LOCATION,
   resume: RESUME_LOCATION,
   trash: TRASH_LOCATION,

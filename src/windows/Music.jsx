@@ -1,5 +1,5 @@
 import { WindowControls } from '#components'
-import { songs } from '#constants'
+import { useSiteStore } from '../store/siteStore'
 import WindowWrapper from '#hoc/WindowWrapper'
 import useWindowStore from '#store/window'
 import useAudioStore from '#store/audio'
@@ -15,6 +15,8 @@ const formatTime = (s) => {
 
 const Music = () => {
   const isOpen = useWindowStore(state => state.windows.music?.isOpen);
+  const { data } = useSiteStore();
+  const songs = data?.music || [];
 
   const {
     init,
@@ -126,10 +128,10 @@ const Music = () => {
         </div>
         <div className='player'>
           <div className='cover relative'>
-            <img 
-              src={current?.cover || '/images/music.webp'} 
-              alt={current?.title || 'Cover'} 
-              loading='lazy' 
+            <img
+              src={current?.cover || '/images/music.webp'}
+              alt={current?.title || 'Cover'}
+              loading='lazy'
               className={`transition-opacity duration-300 ${isLoading ? 'opacity-50' : 'opacity-100'}`}
             />
           </div>
@@ -160,9 +162,9 @@ const Music = () => {
             <span>{formatTime(duration)}</span>
           </div>
           <div className='flex items-center justify-center gap-6 mt-4'>
-            <button 
-              aria-label='Shuffle' 
-              onClick={toggleShuffle} 
+            <button
+              aria-label='Shuffle'
+              onClick={toggleShuffle}
               className={`p-2 rounded-full ${shuffle ? 'bg-red-100' : 'bg-gray-100'} hover:bg-gray-200`}
               title={shuffle ? 'Shuffle: On' : 'Shuffle: Off'}
             >
@@ -171,9 +173,9 @@ const Music = () => {
             <button aria-label='Previous' onClick={prev} className='p-2 rounded-full bg-gray-100 hover:bg-gray-200'>
               <SkipBack size={22} className='text-gray-700' />
             </button>
-            <button 
-              aria-label='Play/Pause' 
-              onClick={togglePlay} 
+            <button
+              aria-label='Play/Pause'
+              onClick={togglePlay}
               disabled={isLoading}
               className='w-12 h-12 rounded-full bg-red-500 flex items-center justify-center shadow-md hover:bg-red-600 disabled:opacity-75'
             >
@@ -188,14 +190,14 @@ const Music = () => {
             <button aria-label='Next' onClick={next} className='p-2 rounded-full bg-gray-100 hover:bg-gray-200'>
               <SkipForward size={22} className='text-gray-700' />
             </button>
-            <button 
-              aria-label='Repeat Mode' 
-              onClick={toggleRepeatMode} 
+            <button
+              aria-label='Repeat Mode'
+              onClick={toggleRepeatMode}
               className={`p-2 rounded-full ${repeatMode !== 'none' ? 'bg-red-100' : 'bg-gray-100'} hover:bg-gray-200`}
               title={
-                repeatMode === 'none' ? 'Repeat: Off' : 
-                repeatMode === 'autoplay' ? 'Autoplay: On' : 
-                'Repeat One: On'
+                repeatMode === 'none' ? 'Repeat: Off' :
+                  repeatMode === 'autoplay' ? 'Autoplay: On' :
+                    'Repeat One: On'
               }
             >
               {getRepeatIcon()}
