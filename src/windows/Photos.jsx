@@ -5,7 +5,7 @@ import WindowWrapper from '#hoc/WindowWrapper';
 import useWindowStore from '#store/window';
 import { Mail, Search } from 'lucide-react/dist/esm/icons';
 
-const isVideo = (url) => /\.(mp4|webm|mkv|ogg)$/i.test(url);
+const isVideo = (url) => url && /\.(mp4|webm|mkv|ogg|mov|m4v)(\?.*)?$/i.test(url);
 
 const Photos = () => {
   const { data } = useSiteStore();
@@ -69,14 +69,19 @@ const Photos = () => {
                 }}
               >
                 {isVideo(img) ? (
-                  <video
-                    src={img}
-                    className="w-full rounded-lg"
-                    muted
-                    loop
-                    onMouseEnter={(e) => e.target.play()}
-                    onMouseLeave={(e) => { e.target.pause(); e.target.currentTime = 0; }}
-                  />
+                  <div className="relative group/video w-full">
+                    <video
+                      src={img}
+                      className="w-full rounded-lg bg-black/10"
+                      muted
+                      preload="metadata"
+                      playsInline
+                    />
+                    {/* Visual indicator that it's a video */}
+                    <div className="absolute top-2 right-2 bg-black/60 rounded-md p-1 backdrop-blur-sm shadow-xl">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="white" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                    </div>
+                  </div>
                 ) : (
                   <img
                     src={img}

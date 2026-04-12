@@ -1,8 +1,26 @@
+import { useState, useEffect } from 'react';
 import { useSiteStore } from '../store/siteStore';
-import { Play, Instagram, Youtube, Music, Code, Mail } from 'lucide-react';
+import { Play, Instagram, Youtube, Music, ChevronLeft, ChevronRight } from 'lucide-react';
+
+const isVideoUrl = (url) => url && /\.(mp4|webm|mkv|ogg|mov|m4v)(\?.*)?$/i.test(url);
 
 export default function Home() {
   const { data, loading } = useSiteStore();
+  const [bgIndex, setBgIndex] = useState(0);
+  const [backgrounds, setBackgrounds] = useState([]);
+
+  useEffect(() => {
+    if (data) {
+      // Combine global wallpaper, hero background, and gallery items for a full wallpaper list
+      const globalBg = data.wallpaperUrl;
+      const heroBg = data.hero?.backgroundUrl;
+      const galleryBgs = data.gallery?.map(g => g.img).filter(Boolean) || [];
+
+      // Filter out empty strings and remove duplicates
+      const allBgs = [globalBg, heroBg, ...galleryBgs].filter((v, i, a) => v && v.trim() !== '' && a.indexOf(v) === i);
+      setBackgrounds(allBgs);
+    }
+  }, [data]);
 
   if (loading) {
     return (
@@ -16,16 +34,33 @@ export default function Home() {
   }
 
   const { hero, about, music, socials } = data;
+  const currentBg = backgrounds[bgIndex] || hero.backgroundUrl;
+  const isVideo = isVideoUrl(currentBg);
+
+  const nextBg = () => setBgIndex((prev) => (prev + 1) % backgrounds.length);
+  const prevBg = () => setBgIndex((prev) => (prev - 1 + backgrounds.length) % backgrounds.length);
 
   return (
     <div className="relative min-h-screen overflow-x-hidden selection:bg-purple-500/50">
       {/* Background Image / Video with Overlay */}
       <div className="fixed inset-0 z-[-1] bg-black">
-        <img 
-          src={hero.backgroundUrl} 
-          alt="Lofi Background" 
-          className="absolute inset-0 w-full h-full object-cover opacity-60"
-        />
+        {isVideo ? (
+          <video
+            key={currentBg}
+            src={currentBg}
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="absolute inset-0 w-full h-full object-cover opacity-60"
+          />
+        ) : (
+          <img
+            src={currentBg}
+            alt="Lofi Background"
+            className="absolute inset-0 w-full h-full object-cover opacity-60"
+          />
+        )}
         <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/40 to-black/80 backdrop-blur-[2px]"></div>
       </div>
 
@@ -43,7 +78,7 @@ export default function Home() {
 
       {/* Main Content */}
       <main className="pt-32 pb-24 px-6 md:px-12 max-w-5xl mx-auto space-y-32">
-        
+
         {/* Hero Section */}
         <section className="flex flex-col items-center text-center justify-center min-h-[60vh] space-y-6 animate-fade-in-up">
           <div className="px-4 py-1.5 rounded-full bg-white/5 border border-white/10 backdrop-blur-md text-xs font-medium text-purple-200 tracking-wider mb-4 animate-pulse">
@@ -86,12 +121,12 @@ export default function Home() {
           <div className="grid md:grid-cols-2 gap-8">
             {music.map((track) => (
               <div key={track.id} className="glass-panel rounded-3xl overflow-hidden p-2 hover:bg-white/10 transition-colors shadow-2xl group">
-                <iframe 
-                  className="w-full h-[152px] rounded-2xl opacity-90 group-hover:opacity-100 transition-opacity" 
-                  src={track.spotifyUrl} 
-                  frameBorder="0" 
-                  allowFullScreen="" 
-                  allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" 
+                <iframe
+                  className="w-full h-[152px] rounded-2xl opacity-90 group-hover:opacity-100 transition-opacity"
+                  src={track.spotifyUrl}
+                  frameBorder="0"
+                  allowFullScreen=""
+                  allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
                   loading="lazy"
                 ></iframe>
               </div>
@@ -122,7 +157,7 @@ export default function Home() {
             {socials.spotify && (
               <a href={socials.spotify} target="_blank" rel="noreferrer" className="text-white/60 hover:text-green-400 transition-colors">
                 <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.299 1.021zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.84.24 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.6.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.54-1.02.72-1.56.42z"/>
+                  <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.299 1.021zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.84.24 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.6.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.54-1.02.72-1.56.42z" />
                 </svg>
               </a>
             )}
@@ -132,6 +167,19 @@ export default function Home() {
           </div>
         </div>
       </footer>
+
+      {/* Background Controls (Fixed to bottom right) */}
+      {backgrounds.length > 1 && (
+        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-1 bg-black/40 backdrop-blur-md rounded-full p-1.5 border border-white/10 shadow-2xl animate-fade-in-up">
+          <button onClick={prevBg} aria-label="Previous Wallpaper" className="p-2 rounded-full hover:bg-white/10 text-white/70 hover:text-white transition-colors">
+            <ChevronLeft className="w-4 h-4" />
+          </button>
+          <div className="px-1 text-[10px] uppercase tracking-widest font-medium text-white/50">Vibe</div>
+          <button onClick={nextBg} aria-label="Next Wallpaper" className="p-2 rounded-full hover:bg-white/10 text-white/70 hover:text-white transition-colors">
+            <ChevronRight className="w-4 h-4" />
+          </button>
+        </div>
+      )}
     </div>
   );
 }

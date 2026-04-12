@@ -1,5 +1,7 @@
 import React, { useRef, useEffect } from "react";
 import MusicPopup from "./MusicPopup";
+import { useSiteStore } from "../store/siteStore";
+import useAudioStore from "#store/audio";
 
 const isMobile = typeof window !== 'undefined' && window.innerWidth <= 640;
 
@@ -75,6 +77,16 @@ const Welcome = React.memo(() => {
   const subtitleRef = useRef(null);
   const welcomeContainerRef = useRef(null);
   const welcomePlaceholderRef = useRef(null);
+
+  // Unconditionally initialize the global audio controller with the site's playlist
+  // so the MusicPopup always renders on boot regardless of the window state.
+  const { data } = useSiteStore();
+  const initAudio = useAudioStore(state => state.init);
+  useEffect(() => {
+    if (data?.music?.length) {
+      initAudio(data.music);
+    }
+  }, [data?.music, initAudio]);
 
   useEffect(() => {
     // Skip text hover effects on mobile for better performance

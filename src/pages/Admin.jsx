@@ -3,8 +3,8 @@ import { useSiteStore } from '../store/siteStore';
 import { Save, LogIn, ArrowLeft, Plus, Trash2, Image as ImageIcon, Film, Wallpaper } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
-const isVideo = (url) => /\.(mp4|webm|mkv|ogg)$/i.test(url || '');
-const isGif = (url) => /\.gif$/i.test(url || '');
+const isVideo = (url) => /\.(mp4|webm|mkv|ogg|mov|m4v)(\?.*)?$/i.test(url || '');
+const isGif = (url) => /\.gif(\?.*)?$/i.test(url || '');
 
 const extractYoutubeId = (url) => {
   if (!url) return '';
@@ -126,12 +126,20 @@ export default function Admin() {
             <h2 className="text-xl font-bold mb-4 border-b border-white/10 pb-2">Global Settings</h2>
             <div>
               <label className="block text-xs text-purple-200/60 mb-1">Background Wallpaper (Image, GIF, or MP4 URL)</label>
-              <input
-                value={formData.wallpaperUrl || ''}
-                onChange={e => setFormData({ ...formData, wallpaperUrl: e.target.value })}
-                className="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-2 text-white text-sm"
-                placeholder="https://example.com/live-wallpaper.mp4"
-              />
+              <div className="flex gap-2">
+                <input
+                  value={formData.wallpaperUrl || ''}
+                  onChange={e => setFormData({ ...formData, wallpaperUrl: e.target.value })}
+                  className="flex-1 bg-black/30 border border-white/10 rounded-xl px-4 py-2 text-white text-sm focus:border-purple-500 transition-colors"
+                  placeholder="https://example.com/live-wallpaper.mp4"
+                />
+                <button
+                  onClick={() => updateData({ ...formData, wallpaperUrl: formData.wallpaperUrl })}
+                  className="px-4 py-2 rounded-xl bg-purple-600/20 hover:bg-purple-600/40 text-purple-200 border border-purple-500/30 text-xs font-semibold"
+                >
+                  ✓ Apply
+                </button>
+              </div>
               <p className="text-xs mt-2 text-purple-200/40">This media will be applied globally to all visitors on the Mac interface.</p>
             </div>
           </div>
@@ -282,10 +290,10 @@ export default function Admin() {
                             setFormData({ ...formData, music: newMusic });
                           }}
                           className={`text-xs px-3 py-1 rounded-full border font-medium transition-all ${isSelected
-                              ? type === 'New Release'
-                                ? 'bg-orange-500/20 border-orange-500/60 text-orange-300'
-                                : 'bg-white/10 border-white/20 text-white/70'
-                              : 'bg-transparent border-white/10 text-white/30 hover:border-white/30'
+                            ? type === 'New Release'
+                              ? 'bg-orange-500/20 border-orange-500/60 text-orange-300'
+                              : 'bg-white/10 border-white/20 text-white/70'
+                            : 'bg-transparent border-white/10 text-white/30 hover:border-white/30'
                             }`}
                         >
                           {type === 'New Release' ? '🔥 New Release' : '🎵 Latest'}
@@ -370,14 +378,17 @@ export default function Admin() {
                   <div className="aspect-square bg-black/50 rounded-lg overflow-hidden border border-white/5 flex items-center justify-center">
                     {item.img ? (
                       isVideo(item.img) ? (
-                        <video
-                          src={item.img}
-                          className="w-full h-full object-cover"
-                          muted
-                          loop
-                          onMouseEnter={e => e.target.play()}
-                          onMouseLeave={e => { e.target.pause(); e.target.currentTime = 0; }}
-                        />
+                        <div className="relative w-full h-full">
+                          <video
+                            src={item.img}
+                            className="w-full h-full object-cover"
+                            muted
+                            preload="metadata"
+                          />
+                          <div className="absolute inset-0 flex items-center justify-center bg-black/20">
+                            <Film size={20} className="text-white/70 drop-shadow-lg" />
+                          </div>
+                        </div>
                       ) : (
                         <img src={item.img} className="w-full h-full object-cover" alt="Preview" />
                       )
@@ -397,10 +408,14 @@ export default function Admin() {
                   />
                   {item.img && (
                     <button
-                      onClick={() => setFormData({ ...formData, wallpaperUrl: item.img })}
-                      className="w-full text-[10px] py-1 rounded bg-white/5 hover:bg-purple-700/40 border border-white/10 text-white/60 transition-colors"
+                      onClick={async () => {
+                        const newWallpaper = item.img;
+                        setFormData({ ...formData, wallpaperUrl: newWallpaper });
+                        await updateData({ ...formData, wallpaperUrl: newWallpaper });
+                      }}
+                      className="w-full text-[10px] py-1 rounded bg-white/5 hover:bg-purple-700/40 border border-white/10 text-white/60 transition-colors flex items-center justify-center gap-1"
                     >
-                      🖼 Wallpaper
+                      <Wallpaper size={10} /> Set Wallpaper
                     </button>
                   )}
                 </div>

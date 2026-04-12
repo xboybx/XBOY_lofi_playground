@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { supabase } from '../supabaseClient';
 
 const defaultDiscover = {
-  mainImage: "https://ik.imagekit.io/t8nfvprzb/Mac_os_lofi_site/Scene%20in%20xboy.png",
+  mainImage: "https://ik.imagekit.io/t8nfvprzb/Mac_os_lofi_site/Chill_study.mp4",
   subImage1: "https://ik.imagekit.io/mtkm3escy/Portfolio%20assets/midnight-drive.png?updatedAt=1764096599955",
   subImage2: "https://ik.imagekit.io/mtkm3escy/protfolio%20pic.JPG?updatedAt=1763837489716",
   newReleaseIds: [],
@@ -54,18 +54,27 @@ export const useSiteStore = create((set, get) => ({
     set({ loading: true, error: null });
     try {
       const [
-        { data: identity },
-        { data: about },
-        { data: socials },
-        { data: music },
-        { data: gallery }
+        { data: identity, error: identityErr },
+        { data: about,    error: aboutErr },
+        { data: socials,  error: socialsErr },
+        { data: music,    error: musicErr },
+        { data: gallery,  error: galleryErr }
       ] = await Promise.all([
-        supabase.from('site_identity').select('*').single(),
-        supabase.from('about_me').select('*').single(),
+        // CRITICAL: maybeSingle() returns null instead of THROWING when 0 rows are found.
+        // .single() was silently crashing the entire fetch, causing all data to fall back to defaults.
+        supabase.from('site_identity').select('*').maybeSingle(),
+        supabase.from('about_me').select('*').maybeSingle(),
         supabase.from('social_links').select('*'),
         supabase.from('music_tracks').select('*').order('id', { ascending: true }),
         supabase.from('gallery_media').select('*').order('id', { ascending: true })
       ]);
+
+      // Log individual query errors visibly in DevTools
+      if (identityErr) console.error('[fetchData] site_identity:', identityErr.message);
+      if (aboutErr)    console.error('[fetchData] about_me:', aboutErr.message);
+      if (socialsErr)  console.error('[fetchData] social_links:', socialsErr.message);
+      if (musicErr)    console.error('[fetchData] music_tracks:', musicErr.message);
+      if (galleryErr)  console.error('[fetchData] gallery_media:', galleryErr.message);
 
       const socialMap = {};
       if (socials) {
@@ -109,12 +118,15 @@ export const useSiteStore = create((set, get) => ({
             id: g.id,
             img: g.media_url
           })),
-          discover: identity?.discover_data || defaultDiscover
+          discover: {
+            ...defaultDiscover,
+            ...(identity?.discover_data || {})
+          }
         },
         loading: false
       });
     } catch (error) {
-      console.error('Error fetching site data:', error);
+      console.error('[fetchData] FATAL — all data fell back to defaults:', error);
       set({ loading: false, error: error.message });
     }
   },

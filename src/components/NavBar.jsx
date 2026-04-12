@@ -145,7 +145,7 @@ const NavBar = React.memo(() => {
         <div className="logo-portfolio-container" ref={logoPortfolioRef}>
           <img src="/images/logo.svg" alt="logo" />
           <div className="portfolio-wrapper" ref={wrapperRef}>
-            <p className="font-bold portfolio-text">XBOY Portfolio</p>
+            <p className="font-bold portfolio-text">XBOY</p>
           </div>
         </div>
 

@@ -43,7 +43,8 @@ const MusicPopup = () => {
 
   return (
     <div
-      className="absolute top-[52px] left-1/2 -ml-[170px] w-[340px] bg-black/20 backdrop-blur-3xl backdrop-saturate-150 border border-white/20 border-t-0 shadow-[inset_0_-1px_1px_rgba(255,255,255,0.15),0_20px_40px_rgba(0,0,0,0.5)] rounded-b-[28px] rounded-t-none p-[18px] flex flex-col select-none transition-all duration-300 hover:bg-black/30 hover:border-white/30 z-[40] max-sm:static max-sm:mt-8 max-sm:mx-auto max-sm:ml-0 max-sm:rounded-[28px] max-sm:border-t"
+      className="fixed left-1/2 -translate-x-1/2 w-[340px] bg-black/20 backdrop-blur-3xl backdrop-saturate-150 border border-white/20 border-t-0 shadow-[inset_0_-1px_1px_rgba(255,255,255,0.15),0_20px_40px_rgba(0,0,0,0.5)] rounded-b-[28px] rounded-t-none p-[18px] flex flex-col select-none transition-all duration-300 hover:bg-black/30 hover:border-white/30 z-[40] max-sm:static max-sm:mt-8 max-sm:mx-auto max-sm:ml-0 max-sm:rounded-[28px] max-sm:border-t"
+      style={{ top: 'var(--navbar-height, 48px)' }}
     >
       {/* Top Section: Art + Title + Toggle */}
       <div className="flex gap-4 items-center">

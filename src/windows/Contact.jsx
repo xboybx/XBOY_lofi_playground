@@ -33,7 +33,7 @@ const Contact = () => {
   const submitToBothEndpoints = async (formData) => {
     setSubmitting(true)
     setResult('Sending message...')
-    
+
     const submitToEndpoint = async (accessKey, keyName) => {
       try {
         const response = await fetch('https://api.web3forms.com/submit', {
@@ -49,7 +49,7 @@ const Contact = () => {
             ...formData
           })
         })
-        
+
         const result = await response.json()
         return { success: response.ok, message: result.message, keyName }
       } catch (error) {
@@ -91,7 +91,7 @@ const Contact = () => {
       return () => clearTimeout(t)
     }
   }, [isSuccess, showModal])
-  
+
   return (
     <>
       <div id='window-header' className='flex items-center justify-between window-drag-handle'>
@@ -122,57 +122,98 @@ const Contact = () => {
           Open for work and collaboration. Write me if you need something built.
         </p>
         <p>
-          j.jaswanth@icloud.com
+          xboy.wav@gmail.com
         </p>
-        <ul>
+        <ul className='grid grid-cols-2 gap-3'>
           {[
-            { id: 'insta', bg: '#E4405F', link: siteData?.socials?.instagram, icon: '/icons/instagram.svg', text: 'Instagram' },
-            { id: 'yt', bg: '#FF0000', link: siteData?.socials?.youtube, icon: '/icons/youtube.svg', text: 'YouTube' },
-            { id: 'spot', bg: '#1DB954', link: siteData?.socials?.spotify, icon: '/icons/spotify.svg', text: 'Spotify' },
-          ].map(({id, bg, link, icon, text}) => (
-            <li key={id} style={{backgroundColor: bg}}>
-              <a 
-                href={link} 
-                target='_blank' 
+            {
+              id: 'insta',
+              bg: '#E4405F',
+              link: siteData?.socials?.instagram,
+              icon: (
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect width="20" height="20" x="2" y="2" rx="5" ry="5" /><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" /><line x1="17.5" x2="17.51" y1="6.5" y2="6.5" />
+                </svg>
+              ),
+              text: 'Instagram'
+            },
+            {
+              id: 'yt',
+              bg: '#FF0000',
+              link: siteData?.socials?.youtube,
+              icon: (
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M2.5 17a24.12 24.12 0 0 1 0-10 2 2 0 0 1 2-2 58.38 58.38 0 0 1 15 0 2 2 0 0 1 2 2 24.12 24.12 0 0 1 0 10 2 2 0 0 1-2 2 58.38 58.38 0 0 1-15 0 2 2 0 0 1-2-2Z" /><path d="m10 15 5-3-5-3z" />
+                </svg>
+              ),
+              text: 'YouTube'
+            },
+            {
+              id: 'spot',
+              bg: '#1DB954',
+              link: siteData?.socials?.spotify,
+              icon: (
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.498 17.307c-.22.36-.677.472-1.037.253-2.877-1.758-6.497-2.157-10.762-1.18-.41.094-.82-.163-.914-.573-.094-.41.163-.82.573-.914 4.667-1.066 8.657-.615 11.88 1.353.36.22.472.677.253 1.037zm1.467-3.258c-.277.45-.86.597-1.31.32-3.294-2.023-8.318-2.613-12.215-1.43-.507.153-1.04-.143-1.193-.65-.153-.507.143-1.04.65-1.193 4.46-1.353 10.007-.7 13.748 1.6 0 .45-.276.596.86.32 1.31zm.126-3.414c-3.948-2.345-10.462-2.56-14.234-1.415-.606.183-1.25-.166-1.433-.772-.183-.606.166-1.25.772-1.433 4.337-1.316 11.53-1.063 16.082 1.638.544.323.722 1.026.4 1.57-.323.544-1.026.722-1.57.4z" />
+                </svg>
+              ),
+              text: 'Spotify'
+            },
+            {
+              id: 'github',
+              bg: '#333',
+              link: siteData?.socials?.github,
+              icon: (
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4" /><path d="M9 18c-4.51 2-5-2-7-2" />
+                </svg>
+              ),
+              text: 'GitHub'
+            },
+            {
+              id: 'linkedin',
+              bg: '#0077b5',
+              link: siteData?.socials?.linkedin,
+              icon: (
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z" /><rect width="4" height="12" x="2" y="9" /><circle cx="4" cy="4" r="2" />
+                </svg>
+              ),
+              text: 'LinkedIn'
+            },
+          ].filter(s => s.link).map(({ id, bg, link, icon, text }) => (
+            <li key={id} className='rounded-lg transition-transform hover:scale-105 active:scale-95' style={{ backgroundColor: bg }}>
+              <a
+                href={link}
+                target='_blank'
                 rel='noopener noreferrer'
                 title={text}
+                className="flex items-center gap-2 px-3 py-1.5 text-white"
               >
-                <img
-                  src={icon}
-                  alt={text}
-                  loading='lazy'
-                  className='size-5'
-                />
-                <p>
+                <div className="flex items-center justify-center">
+                  {icon}
+                </div>
+                <p className='text-xs font-medium'>
                   {text}
                 </p>
               </a>
             </li>
           ))}
           {/* Contact form trigger as an extra social item */}
-          <li key="contact-form" style={{ backgroundColor: '#000000' }}>
+          <li key="contact-form" className='rounded-lg bg-black transition-transform hover:scale-105 active:scale-95'>
             <a
               href="#contact-form"
               title="Contact Form"
+              className='flex items-center gap-2 px-3 py-1.5 text-white'
               onClick={(e) => {
                 e.preventDefault()
                 setIsSuccess(false)
                 setResult('')
                 setShowModal(true)
               }}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault()
-                  setIsSuccess(false)
-                  setResult('')
-                  setShowModal(true)
-                }
-              }}
-              role="button"
-              tabIndex={0}
             >
-              <Mail className='size-5 text-white' />
-              <p className='text-white'>Contact Form</p>
+              <Mail className='size-[18px]' />
+              <p className='text-xs font-medium'>Contact Form</p>
             </a>
           </li>
         </ul>

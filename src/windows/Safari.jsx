@@ -85,25 +85,7 @@ const ArtistKnowledgePanel = () => {
         {activeTab === 'newReleases' && (
           <div className="flex flex-col flex-1 overflow-x-auto custom-scrollbar pb-4">
             <div className="flex gap-4 h-[340px] min-w-max">
-
-              {/* Column 1: Image 1 (Large) */}
-              <div className="relative w-[340px] h-full rounded-2xl overflow-hidden group cursor-pointer bg-[#303134] shadow-md shrink-0">
-                <img src={discoverData.mainImage} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" alt="Main cover" />
-                <div className="absolute bottom-3 left-3 text-[11px] text-white/90 z-10 px-1 py-0.5 rounded drop-shadow-md font-medium">Source: Official Release</div>
-              </div>
-
-              {/* Column 2: Vertical Stack Images */}
-              <div className="flex flex-col gap-4 w-52 h-full shrink-0">
-                <div className="flex-1 rounded-2xl overflow-hidden cursor-pointer bg-[#303134] group shadow-md">
-                  <img src={discoverData.subImage1} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" alt="Flower album" onError={(e) => { e.target.src = "/newImages/Last-Light.png" }} />
-                </div>
-                <div className="flex-1 rounded-2xl overflow-hidden cursor-pointer bg-[#303134] group relative shadow-md">
-                  <img src={discoverData.subImage2} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" alt="Artist profile" onError={(e) => { e.target.src = "/newImages/Terminal.webp" }} />
-                  <div className="absolute bottom-3 right-3 bg-black/50 p-2 rounded-full backdrop-blur-sm"><LayoutGrid size={16} className="text-white" /></div>
-                </div>
-              </div>
-
-              {/* Column 3: The New Releases List (Stretches to end) */}
+              {/* Column 1: The New Releases List (Now First) */}
               <div className="flex-1 flex flex-col bg-[#303134] rounded-2xl border border-[#3c4043] shadow-md overflow-hidden shrink-0 min-w-[350px]">
                 <div className="px-5 py-3 border-b border-[#3c4043] bg-[#292a2d] flex items-center justify-between">
                   <h3 className="text-base font-medium text-[#e8eaed]">Latest Releases</h3>
@@ -136,6 +118,23 @@ const ArtistKnowledgePanel = () => {
                       <span>No new releases flagged yet.<br />Mark tracks in Admin panel.</span>
                     </div>
                   )}
+                </div>
+              </div>
+
+              {/* Column 2: Image 1 (Large) */}
+              <div className="relative w-[340px] h-full rounded-2xl overflow-hidden group cursor-pointer bg-[#303134] shadow-md shrink-0">
+                <img src={discoverData.mainImage} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" alt="Main cover" />
+                <div className="absolute bottom-3 left-3 text-[11px] text-white/90 z-10 px-1 py-0.5 rounded drop-shadow-md font-medium">Source: Official Release</div>
+              </div>
+
+              {/* Column 3: Vertical Stack Images */}
+              <div className="flex flex-col gap-4 w-52 h-full shrink-0">
+                <div className="flex-1 rounded-2xl overflow-hidden cursor-pointer bg-[#303134] group shadow-md">
+                  <img src={discoverData.subImage1} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" alt="Flower album" onError={(e) => { e.target.src = "/newImages/Last-Light.png" }} />
+                </div>
+                <div className="flex-1 rounded-2xl overflow-hidden cursor-pointer bg-[#303134] group relative shadow-md">
+                  <img src={discoverData.subImage2} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" alt="Artist profile" onError={(e) => { e.target.src = "/newImages/Terminal.webp" }} />
+                  <div className="absolute bottom-3 right-3 bg-black/50 p-2 rounded-full backdrop-blur-sm"><LayoutGrid size={16} className="text-white" /></div>
                 </div>
               </div>
 

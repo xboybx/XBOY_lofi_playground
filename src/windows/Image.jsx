@@ -4,8 +4,8 @@ import WindowWrapper from '#hoc/WindowWrapper'
 import useWindowStore from '#store/window'
 import { useSiteStore } from '../store/siteStore'
 
-const isVideo = (url) => /\.(mp4|webm|mkv|ogg)$/i.test(url);
-const isGif = (url) => /\.gif$/i.test(url);
+const isVideo = (url) => url && /\.(mp4|webm|mkv|ogg|mov|m4v)(\?.*)?$/i.test(url);
+const isGif = (url) => url && /\.gif(\?.*)?$/i.test(url);
 
 const ImageFile = () => {
   const { windows } = useWindowStore()
@@ -24,10 +24,10 @@ const ImageFile = () => {
       document.documentElement.style.setProperty(
         '--wallpaper-url', `url('${encodeURI(imageUrl).replace(/'/g, "%27")}')`
       );
-      localStorage.removeItem('wallpaperUrl'); // clear any old local override
     } else {
-      // For videos, clear CSS and let App.jsx handle the <video> element
-      document.documentElement.style.setProperty('--wallpaper-url', 'none');
+      // For videos, clear CSS image and use the lofi gradient fallback
+      const gradient = 'linear-gradient(135deg, #0f0c29 0%, #1a1a2e 30%, #16213e 60%, #0f3460 100%)';
+      document.documentElement.style.setProperty('--wallpaper-url', gradient);
     }
 
     // Persist globally to Supabase via siteStore

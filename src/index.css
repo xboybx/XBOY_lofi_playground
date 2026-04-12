@@ -5,7 +5,9 @@ body {
   width: 100dvw;
   overflow: hidden;
   height: 100dvh;
-  background-image: var(--wallpaper-url, url("/images/wallpaper.webp"));
+  /* Lofi deep-space gradient — base layer, always visible when no image wallpaper is set */
+  background-color: #000000;
+  background-image: var(--wallpaper-url, linear-gradient(135deg, #000000 0%, #2a2a2a 100%));
   background-size: cover;
   background-repeat: no-repeat;
   background-position: center;
@@ -35,6 +37,15 @@ body {
   background: linear-gradient(90deg, #1e293b 25%, #334155 50%, #1e293b 75%);
   background-size: 200% 100%;
   animation: shimmer 3s infinite linear;
+}
+
+@keyframes crossfade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.animate-crossfade {
+  animation: crossfade 1.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
 @theme {
