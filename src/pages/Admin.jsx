@@ -275,28 +275,33 @@ export default function Admin() {
 
                 <span className="text-white/40 mt-2 font-mono">{i + 1}</span>
                 <div className="flex-1 space-y-3 w-full pr-8">
-                  {/* Track Type Radio Toggle */}
+                  {/* Track Type Checkbox Toggles */}
                   <div className="flex items-center gap-2">
                     <span className="text-xs text-purple-200/50 mr-1">Flag as:</span>
-                    {['New Release', 'Latest'].map(type => {
-                      const isSelected = type === 'New Release' ? !!track.isNewRelease : !track.isNewRelease;
+                    {['Featured', 'Latest'].map(type => {
+                      const isNewReleaseType = type === 'Featured';
+                      const isSelected = isNewReleaseType ? !!track.isNewRelease : !!track.isLatest;
                       return (
                         <button
                           key={type}
                           type="button"
                           onClick={() => {
                             const newMusic = [...formData.music];
-                            newMusic[i] = { ...newMusic[i], isNewRelease: type === 'New Release' };
+                            if (isNewReleaseType) {
+                              newMusic[i] = { ...newMusic[i], isNewRelease: !track.isNewRelease };
+                            } else {
+                              newMusic[i] = { ...newMusic[i], isLatest: !track.isLatest };
+                            }
                             setFormData({ ...formData, music: newMusic });
                           }}
                           className={`text-xs px-3 py-1 rounded-full border font-medium transition-all ${isSelected
-                            ? type === 'New Release'
+                            ? isNewReleaseType
                               ? 'bg-orange-500/20 border-orange-500/60 text-orange-300'
-                              : 'bg-white/10 border-white/20 text-white/70'
+                              : 'bg-green-500/20 border-green-500/60 text-green-300'
                             : 'bg-transparent border-white/10 text-white/30 hover:border-white/30'
                             }`}
                         >
-                          {type === 'New Release' ? '🔥 New Release' : '🎵 Latest'}
+                          {isNewReleaseType ? '🔥 Featured' : '🎵 Latest'}
                         </button>
                       );
                     })}

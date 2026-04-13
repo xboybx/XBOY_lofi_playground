@@ -4,5 +4,6 @@ import Dock from "./Dock";
 import WindowControls from "./WindowControls";
 import Home from "./Home";
 import Clock from "./Clock";
+import NewReleaseNotification from "./NewReleaseNotification";
 
-export { NavBar, Welcome, Dock, WindowControls, Home, Clock}
+export { NavBar, Welcome, Dock, WindowControls, Home, Clock, NewReleaseNotification}

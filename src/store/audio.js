@@ -17,7 +17,7 @@ const useAudioStore = create(immer((set, get) => ({
   muted: false,
   ended: false,
 
-  repeatMode: 'none',
+  repeatMode: 'autoplay',
   shuffle: false,
   playedIndices: [],
 

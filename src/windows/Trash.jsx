@@ -32,8 +32,8 @@ const Trash = () => {
         <Trash2 size={18} className='text-gray-600' />
         <h2 className='flex-1 text-center'>Trash</h2>
       </div>
-      <div className='flex bg-white h-full'>
-        <div className='sidebar'>
+      <div className='flex bg-white h-full min-h-0'>
+        <div className='sidebar max-sm:hidden'>
           <h2>Favorites</h2>
           <ul>
             <li className='flex items-center gap-2 px-3 py-2 rounded-md cursor-pointer transition-colors bg-blue-100 text-blue-700'>
@@ -42,11 +42,11 @@ const Trash = () => {
             </li>
           </ul>
         </div>
-        <ul className='content flex-1 p-4 overflow-y-auto flex flex-wrap content-start gap-4 bg-white'>
+        <ul className='content flex-1 p-3 sm:p-4 overflow-y-auto flex flex-wrap content-start gap-3 sm:gap-4 bg-white'>
           {locations.trash.children.map((item) => (
             <li
               key={item.id}
-              className='cursor-pointer flex flex-col items-center justify-start w-24 gap-2 py-3 hover:bg-blue-50 focus:bg-blue-100 rounded-md transition-colors group'
+              className='cursor-pointer flex flex-col items-center justify-start w-16 sm:w-24 gap-1 sm:gap-2 py-2 sm:py-3 hover:bg-blue-50 focus:bg-blue-100 rounded-md transition-colors group'
               onClick={(e) => {
                 e.stopPropagation();
                 openItem(item);
@@ -56,9 +56,9 @@ const Trash = () => {
                 src={item.icon} 
                 alt={item.name} 
                 loading='lazy' 
-                className='w-14 h-14 object-contain group-hover:drop-shadow-md transition-all'
+                className='w-10 h-10 sm:w-14 sm:h-14 object-contain group-hover:drop-shadow-md transition-all'
               />
-              <p className='text-xs text-center px-1 break-words line-clamp-2 leading-tight w-full'>{item.name}</p>
+              <p className='text-[10px] sm:text-xs text-center px-1 break-words line-clamp-2 leading-tight w-full'>{item.name}</p>
             </li>
           ))}
         </ul>

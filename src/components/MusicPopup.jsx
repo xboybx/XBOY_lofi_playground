@@ -28,6 +28,7 @@ const MusicPopup = () => {
 
   const currentTrack = playlist[currentIndex] || {};
   const [isExpanded, setIsExpanded] = useState(false);
+  const popupRef = React.useRef(null);
 
   const handleSeek = (e) => {
     const val = parseFloat(e.target.value);
@@ -39,11 +40,32 @@ const MusicPopup = () => {
     setVolume(val);
   };
 
+  React.useEffect(() => {
+    let instance = null;
+    Promise.all([
+      import('gsap'),
+      import('gsap/Draggable')
+    ]).then(([{ gsap }, { Draggable }]) => {
+      if (!popupRef.current) return;
+      gsap.registerPlugin(Draggable);
+      
+      instance = Draggable.create(popupRef.current, {
+        type: 'x', // Lock dynamically to X-axis
+        bounds: window, // Stop it from flying off-screen!
+        cursor: 'grab',
+        activeCursor: 'grabbing',
+        ignore: 'button, input'
+      })[0];
+    });
+    return () => instance?.kill();
+  }, []);
+
   if (!playlist.length) return null;
 
   return (
     <div
-      className="fixed left-1/2 -translate-x-1/2 w-[340px] bg-black/20 backdrop-blur-3xl backdrop-saturate-150 border border-white/20 border-t-0 shadow-[inset_0_-1px_1px_rgba(255,255,255,0.15),0_20px_40px_rgba(0,0,0,0.5)] rounded-b-[28px] rounded-t-none p-[18px] flex flex-col select-none transition-all duration-300 hover:bg-black/30 hover:border-white/30 z-[40] max-sm:static max-sm:mt-8 max-sm:mx-auto max-sm:ml-0 max-sm:rounded-[28px] max-sm:border-t"
+      ref={popupRef}
+      className="fixed left-0 right-0 mx-auto w-[340px] max-w-[92vw] bg-black/20 backdrop-blur-xs backdrop-saturate-150 border border-white/20 border-t-0 shadow-[inset_0_-1px_1px_rgba(255,255,255,0.15),0_20px_40px_rgba(0,0,0,0.5)] rounded-b-[28px] p-[18px] flex flex-col select-none hover:bg-black/30 hover:border-white/30 z-[60]"
       style={{ top: 'var(--navbar-height, 48px)' }}
     >
       {/* Top Section: Art + Title + Toggle */}

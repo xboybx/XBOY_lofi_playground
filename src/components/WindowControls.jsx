@@ -2,10 +2,25 @@ import useWindowStore from '#store/window'
 import React from 'react'
 import { X, Minus, Plus } from 'lucide-react/dist/esm/icons'
 
+const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768;
+
 const WindowControls = ({target}) => {
 
   const { closeWindow, minimizeWindow, toggleMaximizeWindow } = useWindowStore();
 
+  // Mobile: single large "Done" button (iOS-style)
+  if (isMobile) {
+    return (
+      <button
+        onClick={(e) => { e.stopPropagation(); closeWindow(target); }}
+        className="text-blue-500 font-semibold text-sm px-2 py-1 active:opacity-60 transition-opacity"
+      >
+        Done
+      </button>
+    );
+  }
+
+  // Desktop: macOS traffic light dots
   return (
     <div id='window-controls' className='group flex items-center'>
       <div 

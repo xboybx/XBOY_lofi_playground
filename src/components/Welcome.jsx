@@ -154,21 +154,16 @@ const Welcome = React.memo(() => {
         <p ref={subtitleRef}>
           {renderText(
             "welcome to my lofi space",
-            "text-xl sm:text-3xl font-georama text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)] tracking-wide",
+            "text-sm sm:text-xl md:text-3xl font-georama text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)] tracking-wide",
             100
           )}
         </p>
-        <h1 ref={titleRef} className="mt-7">
+        <h1 ref={titleRef} className="mt-4 sm:mt-7">
           {renderText(
             "XBOY",
-            "text-8xl sm:text-7xl md:text-9xl italic font-georama text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)] tracking-wide" 
+            "text-7xl sm:text-8xl md:text-9xl italic font-georama text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)] tracking-wide" 
           )}
         </h1>
-        <div className="small-screen">
-          <p className="text-white">Mobile version is still in progress. For the full experience, use a larger screen or visit the desktop site. </p>
-          <br />
-          <a href="https://www.jjaswanth.in" target="_blank" rel="noopener noreferrer" className="flex-center text-blue-100">For Mobile Devices visit here</a>
-        </div>
       </section>
       
       <MusicPopup />

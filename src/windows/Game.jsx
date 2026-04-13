@@ -131,7 +131,7 @@ const Game = () => {
   };
 
   return (
-    <>
+    <div className='flex flex-col h-full w-full overflow-hidden'>
       <div
         id='window-header'
         className='window-drag-handle'
@@ -244,7 +244,7 @@ const Game = () => {
         </div>
       ) : (
         // Game View - takes full space
-        <div className={`relative flex-1 w-full overflow-hidden bg-white min-h-0 ${isMaximized ? 'h-full' : 'h-full'}`}>
+        <div className="relative flex-1 w-full overflow-hidden bg-white min-h-0">
           {!isFocused && (
             <button
               type="button"
@@ -267,7 +267,7 @@ const Game = () => {
           />
         </div>
       )}
-    </>
+    </div>
   )
 }
 

@@ -63,6 +63,23 @@ const NavBar = React.memo(() => {
   const gifRef = useRef(null);
   const logoPortfolioRef = useRef(null);
   const logoPortfolioPlaceholderRef = useRef(null);
+  const navRef = useRef(null);
+
+  // Measure navbar height and expose as CSS variable so MusicPopup stays flush
+  useEffect(() => {
+    const nav = navRef.current;
+    if (!nav) return;
+
+    const updateHeight = () => {
+      const h = nav.getBoundingClientRect().height;
+      document.documentElement.style.setProperty('--navbar-height', `${h}px`);
+    };
+
+    updateHeight(); // run immediately
+    const ro = new ResizeObserver(updateHeight);
+    ro.observe(nav);
+    return () => ro.disconnect();
+  }, []);
 
   useEffect(() => {
     // Skip animations on mobile for better performance
@@ -139,7 +156,7 @@ const NavBar = React.memo(() => {
   }, [openWindow, setActiveLocation]);
 
   return (
-    <nav>
+    <nav ref={navRef}>
       <div>
         {/* Draggable logo + portfolio section */}
         <div className="logo-portfolio-container" ref={logoPortfolioRef}>
@@ -155,7 +172,8 @@ const NavBar = React.memo(() => {
           </div>
         )}
 
-        <ul>
+        {/* Nav links — hidden on mobile */}
+        <ul className="max-sm:hidden">
           {activeMusicPlatforms.length > 0
             ? activeMusicPlatforms.map(platform => (
               <NavLink
@@ -171,8 +189,10 @@ const NavBar = React.memo(() => {
           }
         </ul>
       </div>
+
+      {/* Right section: socials + icons + clock — on mobile only show clock */}
       <div>
-        <ul className="flex items-center gap-4 border-r border-[#1c1c1c]/10 pr-4 mr-1">
+        <ul className="flex items-center gap-4 border-r border-[#1c1c1c]/10 pr-4 mr-1 max-sm:hidden">
           {activeSocials.map(social => (
             <li key={social.key}>
               <a
@@ -188,7 +208,7 @@ const NavBar = React.memo(() => {
           ))}
         </ul>
 
-        <ul className="flex items-center">
+        <ul className="flex items-center max-sm:hidden">
           {navIcons.map(({ id, img, type, action }) => (
             <li key={id} onClick={() => handleIconClick({ type, action })}>
               <img
@@ -200,7 +220,7 @@ const NavBar = React.memo(() => {
           ))}
         </ul>
 
-        {/* Clock component with 60s updates */}
+        {/* Clock component with 60s updates — always visible */}
         <Clock />
       </div>
     </nav>

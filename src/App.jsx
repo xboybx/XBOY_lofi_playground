@@ -3,13 +3,14 @@ import useWindowStore from '#store/window'
 import { useSiteStore } from './store/siteStore'
 
 // Detect mobile once
-const isMobile = typeof window !== 'undefined' && window.innerWidth <= 640;
+const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768;
 
 // Lazy load components
 const NavBar = lazy(() => import('./components/NavBar.jsx'))
 const Welcome = lazy(() => import('./components/Welcome.jsx'))
 const Dock = lazy(() => import('./components/Dock.jsx'))
 const Home = lazy(() => import('./components/Home.jsx'))
+const NewReleaseNotification = lazy(() => import('./components/NewReleaseNotification.jsx'))
 
 const Finder = lazy(() => import('./windows/Finder.jsx'))
 const Resume = lazy(() => import('./windows/Resume.jsx'))
@@ -46,7 +47,10 @@ const App = () => {
 
   // Read wallpaper data from store
   const { data } = useSiteStore();
-  const [bgIndex, setBgIndex] = useState(0);
+  const [bgIndex, setBgIndex] = useState(() => {
+    const saved = localStorage.getItem('macos_theme_bgIndex');
+    return saved ? parseInt(saved, 10) : 0;
+  });
 
   // Combine global wallpaper and gallery items for locally cycling themes on the desktop
   const allWallpapers = useMemo(() => {
@@ -56,9 +60,24 @@ const App = () => {
     return [globalBg, ...galleryBgs].filter((v, i, a) => v && v.trim() !== '' && a.indexOf(v) === i);
   }, [data]);
 
-  // Handle Cycling
-  const nextBg = () => setBgIndex((prev) => (prev + 1) % allWallpapers.length);
-  const prevBg = () => setBgIndex((prev) => (prev - 1 + allWallpapers.length) % allWallpapers.length);
+  // Keep saved index within valid bounds if data changes
+  useEffect(() => {
+    if (allWallpapers.length > 0 && bgIndex >= allWallpapers.length) {
+      setBgIndex(0);
+    }
+  }, [allWallpapers, bgIndex]);
+
+  // Handle Cycling & Saving
+  const nextBg = () => setBgIndex((prev) => {
+    const val = (prev + 1) % allWallpapers.length;
+    localStorage.setItem('macos_theme_bgIndex', val);
+    return val;
+  });
+  const prevBg = () => setBgIndex((prev) => {
+    const val = (prev - 1 + allWallpapers.length) % allWallpapers.length;
+    localStorage.setItem('macos_theme_bgIndex', val);
+    return val;
+  });
 
   // Read the active locally cycled wallpaper target
   const targetUrl = allWallpapers[bgIndex] || allWallpapers[0] || '';
@@ -72,25 +91,24 @@ const App = () => {
     if (targetUrl !== activeUrl && targetUrl) {
       setPrevUrl(activeUrl);
       setActiveUrl(targetUrl);
-      
+
       const timer = setTimeout(() => {
         setPrevUrl(null);
       }, 1500); // Detach previous video layer precisely after complete CSS fade-in
-      
+
       return () => clearTimeout(timer);
     }
   }, [targetUrl, activeUrl]);
 
   // Set definitive global CSS gradient underneath ALL layers
   useEffect(() => {
-    if (isMobile) return;
     const gradient = 'linear-gradient(135deg, #000000 0%, #2a2a2a 100%)';
     document.documentElement.style.setProperty('--wallpaper-url', gradient);
   }, []);
 
   // Universal Render Function for both fading and static wallpaper asset layers
   const renderWallpaperLayer = (url, isPrevLayer) => {
-    if (!url || isMobile) return null;
+    if (!url) return null;
     const isVid = isVideoUrl(url);
     const zIndex = isPrevLayer ? 'z-[-5]' : 'z-0'; // Previous stays underneath at z-[5], new slides in over it at z-0
     const animation = isPrevLayer ? '' : 'animate-crossfade';
@@ -117,7 +135,7 @@ const App = () => {
         />
       );
     }
-    
+
     return <img key={`img-${isPrevLayer ? 'prev' : 'active'}-${url}`} src={url} alt="Wallpaper" className={classNames} style={advancedStyles} />;
   };
 
@@ -163,11 +181,11 @@ const App = () => {
       {!isMobile && allWallpapers.length > 1 && (
         <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2 bg-black/50 backdrop-blur-md rounded-full p-2 border border-white/10 shadow-2xl animate-fade-in-up transition-opacity hover:opacity-100 opacity-60">
           <button onClick={prevBg} aria-label="Previous Wallpaper" className="p-1.5 rounded-full hover:bg-white/20 text-white/80 hover:text-white transition-colors cursor-pointer">
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6" /></svg>
           </button>
           <div className="px-1 text-[10px] uppercase tracking-widest font-bold text-white/70">Theme</div>
           <button onClick={nextBg} aria-label="Next Wallpaper" className="p-1.5 rounded-full hover:bg-white/20 text-white/80 hover:text-white transition-colors cursor-pointer">
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6" /></svg>
           </button>
         </div>
       )}
@@ -176,23 +194,20 @@ const App = () => {
           <NavBar />
           <Welcome />
           <Dock />
+          <NewReleaseNotification />
         </Suspense>
-        {!isMobile && (
-          <>
-            {(windows['terminal']?.isOpen || windows['terminal']?.isMinimized) && <Suspense fallback={null}><Terminal /></Suspense>}
-            {(windows['safari']?.isOpen || windows['safari']?.isMinimized) && <Suspense fallback={null}><Safari /></Suspense>}
-            {(windows['resume']?.isOpen || windows['resume']?.isMinimized) && <Suspense fallback={null}><Resume /></Suspense>}
-            {(windows['imgfile']?.isOpen || windows['imgfile']?.isMinimized) && <Suspense fallback={null}><Image /></Suspense>}
-            {(windows['txtfile']?.isOpen || windows['txtfile']?.isMinimized) && <Suspense fallback={null}><Text /></Suspense>}
-            {(windows['finder']?.isOpen || windows['finder']?.isMinimized) && <Suspense fallback={null}><Finder /></Suspense>}
-            {(windows['contact']?.isOpen || windows['contact']?.isMinimized) && <Suspense fallback={null}><Contact /></Suspense>}
-            {(windows['photos']?.isOpen || windows['photos']?.isMinimized) && <Suspense fallback={null}><Photos /></Suspense>}
-            {(windows['music']?.isOpen || windows['music']?.isMinimized) && <Suspense fallback={null}><Music /></Suspense>}
-            {(windows['game']?.isOpen || windows['game']?.isMinimized) && <Suspense fallback={null}><Game /></Suspense>}
-            {(windows['vscode']?.isOpen || windows['vscode']?.isMinimized) && <Suspense fallback={null}><VSCode /></Suspense>}
-            {(windows['trash']?.isOpen || windows['trash']?.isMinimized) && <Suspense fallback={null}><Trash /></Suspense>}
-          </>
-        )}
+        {(windows['terminal']?.isOpen || windows['terminal']?.isMinimized) && <Suspense fallback={null}><Terminal /></Suspense>}
+        {(windows['safari']?.isOpen || windows['safari']?.isMinimized) && <Suspense fallback={null}><Safari /></Suspense>}
+        {(windows['resume']?.isOpen || windows['resume']?.isMinimized) && <Suspense fallback={null}><Resume /></Suspense>}
+        {(windows['imgfile']?.isOpen || windows['imgfile']?.isMinimized) && <Suspense fallback={null}><Image /></Suspense>}
+        {(windows['txtfile']?.isOpen || windows['txtfile']?.isMinimized) && <Suspense fallback={null}><Text /></Suspense>}
+        {(windows['finder']?.isOpen || windows['finder']?.isMinimized) && <Suspense fallback={null}><Finder /></Suspense>}
+        {(windows['contact']?.isOpen || windows['contact']?.isMinimized) && <Suspense fallback={null}><Contact /></Suspense>}
+        {(windows['photos']?.isOpen || windows['photos']?.isMinimized) && <Suspense fallback={null}><Photos /></Suspense>}
+        {(windows['music']?.isOpen || windows['music']?.isMinimized) && <Suspense fallback={null}><Music /></Suspense>}
+        {(windows['game']?.isOpen || windows['game']?.isMinimized) && <Suspense fallback={null}><Game /></Suspense>}
+        {(windows['vscode']?.isOpen || windows['vscode']?.isMinimized) && <Suspense fallback={null}><VSCode /></Suspense>}
+        {(windows['trash']?.isOpen || windows['trash']?.isMinimized) && <Suspense fallback={null}><Trash /></Suspense>}
         {!isMobile && <Suspense fallback={null}><Home /></Suspense>}
       </main>
       {/* Defer analytics on mobile for better performance */}

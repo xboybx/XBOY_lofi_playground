@@ -32,7 +32,7 @@ const Photos = () => {
         </div>
       </div>
       <div className='flex w-full flex-1 min-h-0'>
-        <div className='sidebar'>
+        <div className='sidebar max-sm:hidden'>
           <h2>
             Photos
           </h2>

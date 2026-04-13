@@ -4,7 +4,7 @@ import { Tooltip } from 'react-tooltip';
 import useWindowStore from '#store/window';
 import useLocationStore from '#store/location';
 
-const isMobile = typeof window !== 'undefined' && window.innerWidth <= 640;
+const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768;
 
 const Dock = React.memo(() => {
 
@@ -102,27 +102,36 @@ const Dock = React.memo(() => {
   return (
     <section id='dock'>
       <div ref={dockRef} className='dock-container'>
-        {dockApps.map(({id, name, icon, canOpen, action}) => (
-          <div key={id} className='relative flex justify-center'>
-            <button 
-              type='button' 
-              className='dock-icon'
-              aria-label={name}
-              data-tooltip-id= "dock-tooltip"
-              data-tooltip-content = {name}
-              data-tooltip-delay-show = {150}
-              disabled= {!canOpen}
-              onClick={() => toggleApp({id, canOpen, action})}
-            >
-              <img 
-                src={`/images/${icon}`}
-                alt={name}
-                loading='lazy'
-                className={canOpen ? '' : 'opacity-60'}
-              />
-            </button>
-          </div>
-        ))}
+        {dockApps
+          .filter(app => !isMobile || app.id !== 'game') // Hide game on mobile
+          .map(({id, name, icon, canOpen, action}) => {
+            const isActive = windows[id]?.isOpen;
+            return (
+              <div key={id} className='relative flex flex-col justify-center items-center'>
+                <button 
+                  type='button' 
+                  className='dock-icon'
+                  aria-label={name}
+                  data-tooltip-id="dock-tooltip"
+                  data-tooltip-content={name}
+                  data-tooltip-delay-show={150}
+                  disabled={!canOpen}
+                  onClick={() => toggleApp({id, canOpen, action})}
+                >
+                  <img 
+                    src={`/images/${icon}`}
+                    alt={name}
+                    loading='lazy'
+                    className={canOpen ? '' : 'opacity-60'}
+                  />
+                </button>
+                {/* Active indicator dot - visible on mobile */}
+                {isMobile && isActive && (
+                  <span className="w-1 h-1 rounded-full bg-white/70 mt-0.5 flex-shrink-0" />
+                )}
+              </div>
+            );
+          })}
         <Tooltip id='dock-tooltip' place='top' className='tooltip' />
       </div>
     </section>

@@ -3,8 +3,8 @@ import { useSiteStore } from '../store/siteStore'
 import WindowWrapper from '#hoc/WindowWrapper'
 import useWindowStore from '#store/window'
 import useAudioStore from '#store/audio'
-import React, { useEffect } from 'react'
-import { Play, Pause, SkipBack, SkipForward, Volume2, VolumeX, Shuffle, Repeat, Repeat1, Loader } from 'lucide-react/dist/esm/icons'
+import React, { useEffect, useState, useMemo } from 'react'
+import { Play, Pause, SkipBack, SkipForward, Volume2, VolumeX, Shuffle, Repeat, Repeat1, Loader, ListMusic, Clock, Flame } from 'lucide-react/dist/esm/icons'
 
 const formatTime = (s) => {
   if (!s || Number.isNaN(s)) return '0:00'
@@ -17,6 +17,20 @@ const Music = () => {
   const isOpen = useWindowStore(state => state.windows.music?.isOpen);
   const { data } = useSiteStore();
   const songs = data?.music || [];
+  const newReleaseIds = data?.discover?.newReleaseIds || [];
+  const latestIds = data?.discover?.latestIds || [];
+
+  const [activeTab, setActiveTab] = useState('all');
+
+  const filteredSongs = useMemo(() => {
+    if (activeTab === 'featured') {
+      return songs.filter(s => newReleaseIds.includes(s.id));
+    }
+    if (activeTab === 'latest') {
+      return songs.filter(s => latestIds.includes(s.id));
+    }
+    return songs;
+  }, [songs, activeTab, newReleaseIds, latestIds]);
 
   const {
     init,
@@ -86,9 +100,9 @@ const Music = () => {
     setVolume(val);
   };
 
-  const selectSong = (idx) => {
-    // Continue playing if we were already playing
-    setIndex(idx);
+  const selectSong = (songId) => {
+    const idx = songs.findIndex(s => s.id === songId);
+    if (idx !== -1) setIndex(idx, { autoplay: true });
   };
 
   const current = playlist?.[currentIndex] || songs[currentIndex] || null;
@@ -110,20 +124,48 @@ const Music = () => {
         <h2 className='flex-1 text-center font-bold'>Music</h2>
       </div>
       <div className='flex w-full flex-1 min-h-0'>
-        <div className='sidebar pr-0'>
-          <h2>Playlist</h2>
-          <ul>
-            {songs.map((song, idx) => (
-              <li
-                key={song.id}
-                onClick={() => selectSong(idx)}
-                className={idx === currentIndex ? 'bg-blue-100 text-blue-700' : 'hover:bg-gray-200'}
-                title={song.title}
-              >
-                <img src={song.cover} alt="cover" className='w-5 h-5 object-cover rounded' loading='lazy' />
-                <p className='truncate'>{song.title}</p>
-              </li>
-            ))}
+        <div className='sidebar pr-0 max-sm:hidden flex flex-col'>
+          <div className="flex gap-1 mb-2 pr-2 border-b border-gray-200 pb-2">
+            <button
+               onClick={() => setActiveTab('all')}
+               className={`flex-1 flex flex-col items-center p-1 rounded-md transition-colors ${activeTab === 'all' ? 'bg-blue-100 text-blue-700' : 'hover:bg-gray-200 text-gray-500'}`}
+               title="All Songs"
+            >
+               <ListMusic size={18} />
+               <span className="text-[10px] mt-1 font-medium">All</span>
+            </button>
+            <button
+               onClick={() => setActiveTab('latest')}
+               className={`flex-1 flex flex-col items-center p-1 rounded-md transition-colors ${activeTab === 'latest' ? 'bg-blue-100 text-blue-700' : 'hover:bg-gray-200 text-gray-500'}`}
+               title="Latest"
+            >
+               <Clock size={18} />
+               <span className="text-[10px] mt-1 font-medium">Latest</span>
+            </button>
+            <button
+               onClick={() => setActiveTab('featured')}
+               className={`flex-1 flex flex-col items-center p-1 rounded-md transition-colors ${activeTab === 'featured' ? 'bg-blue-100 text-blue-700' : 'hover:bg-gray-200 text-gray-500'}`}
+               title="Featured"
+            >
+               <Flame size={18} />
+               <span className="text-[10px] mt-1 font-medium">Featured</span>
+            </button>
+          </div>
+          <ul className="overflow-y-auto pr-2 pb-2">
+            {filteredSongs.map((song) => {
+              const globalIdx = songs.findIndex(s => s.id === song.id);
+              return (
+                <li
+                  key={song.id}
+                  onClick={() => selectSong(song.id)}
+                  className={globalIdx === currentIndex ? 'bg-blue-100 text-blue-700' : 'hover:bg-gray-200'}
+                  title={song.title}
+                >
+                  <img src={song.cover} alt="cover" className='w-5 h-5 object-cover rounded' loading='lazy' />
+                  <p className='truncate'>{song.title}</p>
+                </li>
+              );
+            })}
           </ul>
         </div>
         <div className='player'>
@@ -135,9 +177,9 @@ const Music = () => {
               className={`transition-opacity duration-300 ${isLoading ? 'opacity-50' : 'opacity-100'}`}
             />
           </div>
-          <div className='mt-6 text-center'>
-            <h3 className='text-3xl font-bold'>{current?.title || 'Unknown'}</h3>
-            <p className='text-sm text-gray-500 mt-1'>{current?.author || 'Unknown'}</p>
+          <div className='mt-4 sm:mt-6 text-center'>
+            <h3 className='text-xl sm:text-3xl font-bold truncate px-2'>{current?.title || 'Unknown'}</h3>
+            <p className='text-xs sm:text-sm text-gray-500 mt-1 truncate px-2'>{current?.author || 'Unknown'}</p>
           </div>
           <div className='sliders mt-3'>
             <div className='flex-1'>
@@ -149,7 +191,7 @@ const Music = () => {
                 value={Math.min(currentTime, duration || 0)}
                 onChange={seekHandler}
                 disabled={isLoading}
-                className='w-full accent-red-500 disabled:opacity-50'
+                className='w-full accent-red-500 disabled:opacity-50 py-2'
                 onMouseDown={(e) => e.stopPropagation()}
                 onMouseDownCapture={(e) => e.stopPropagation()}
                 onPointerDown={(e) => e.stopPropagation()}
@@ -161,7 +203,7 @@ const Music = () => {
             <span>{formatTime(currentTime)}</span> &nbsp; - &nbsp;
             <span>{formatTime(duration)}</span>
           </div>
-          <div className='flex items-center justify-center gap-6 mt-4'>
+          <div className='flex items-center justify-center gap-3 sm:gap-6 mt-4'>
             <button
               aria-label='Shuffle'
               onClick={toggleShuffle}
@@ -214,7 +256,7 @@ const Music = () => {
               step={0.01}
               value={volume}
               onChange={changeVolume}
-              className='accent-gray-600 w-1/2 mx-auto'
+              className='accent-gray-600 w-1/2 mx-auto py-2'
               onMouseDown={(e) => e.stopPropagation()}
               onMouseDownCapture={(e) => e.stopPropagation()}
               onPointerDown={(e) => e.stopPropagation()}

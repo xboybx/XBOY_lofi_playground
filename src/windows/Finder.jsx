@@ -56,12 +56,12 @@ const Finder = () => {
         </h2>
         <Search className="icon" />
       </div>
-      <div className="flex bg-white h-full">
-        <div className="sidebar">
+      <div className="flex bg-white h-full min-h-0">
+        <div className="sidebar max-sm:hidden">
           {renderList("Favorites", Object.values(locations))}
           {/* {renderList("My Projects", locations.work.children)} */}
         </div>
-        <ul className="content">
+        <ul className="content overflow-y-auto">
           {activeLocation.children.map((item) => (
             <li
               key={item.id}

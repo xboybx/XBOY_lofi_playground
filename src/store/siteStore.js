@@ -6,6 +6,7 @@ const defaultDiscover = {
   subImage1: "https://ik.imagekit.io/mtkm3escy/Portfolio%20assets/midnight-drive.png?updatedAt=1764096599955",
   subImage2: "https://ik.imagekit.io/mtkm3escy/protfolio%20pic.JPG?updatedAt=1763837489716",
   newReleaseIds: [],
+  latestIds: [],
   news: [
     { id: 1, title: "Lofi Radio Relaunch", content: "The 24/7 lofi radio stream has been updated with fresh tracks. Tune in to study and chill.", date: "Sep 15, 2025" }
   ]
@@ -107,13 +108,19 @@ export const useSiteStore = create((set, get) => ({
             soundcloud: socialMap.soundcloud || '',
             amazonMusic: socialMap.amazonMusic || '',
           },
-          music: (music || []).map(m => ({
-            id: m.id,
-            title: m.title,
-            author: m.author,
-            youtubeId: m.youtube_id,
-            cover: m.cover_url
-          })),
+          music: (music || []).map(m => {
+            const isNewRelease = (identity?.discover_data?.newReleaseIds || []).includes(m.id);
+            const isLatest = (identity?.discover_data?.latestIds || []).includes(m.id);
+            return {
+              id: m.id,
+              title: m.title,
+              author: m.author,
+              youtubeId: m.youtube_id,
+              cover: m.cover_url,
+              isNewRelease,
+              isLatest
+            };
+          }),
           gallery: (gallery || []).map(g => ({
             id: g.id,
             img: g.media_url
@@ -141,7 +148,10 @@ export const useSiteStore = create((set, get) => ({
       const newReleaseIds = mergedData.music
         .filter(m => m.isNewRelease)
         .map(m => m.id);
-      mergedData.discover = { ...mergedData.discover, newReleaseIds };
+      const latestIds = mergedData.music
+        .filter(m => m.isLatest)
+        .map(m => m.id);
+      mergedData.discover = { ...mergedData.discover, newReleaseIds, latestIds };
     }
 
     // Optimistic update — UI reflects change immediately
@@ -203,6 +213,7 @@ export const useSiteStore = create((set, get) => ({
 
         if (mergedData.music.length > 0) {
           const insertData = mergedData.music.map(m => ({
+            id: m.id,
             title: m.title,
             author: m.author,
             youtube_id: m.youtubeId,
@@ -223,6 +234,7 @@ export const useSiteStore = create((set, get) => ({
 
         if (mergedData.gallery.length > 0) {
           const insertData = mergedData.gallery.map(g => ({
+            id: g.id,
             media_url: g.img,
             media_type: (/\.(mp4|webm|mkv|ogg)$/i.test(g.img)) ? 'video' : 'image'
           }));

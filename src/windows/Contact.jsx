@@ -105,14 +105,14 @@ const Contact = () => {
           <Mail size={17} />
         </a>
       </div>
-      <div className='p-5 space-y-5'>
+      <div className='p-4 sm:p-5 space-y-4 sm:space-y-5 overflow-y-auto flex-1 pb-24 sm:pb-5'>
         <img
           src={siteData?.about?.avatarUrl || 'https://ik.imagekit.io/mtkm3escy/protfolio%20pic.JPG?updatedAt=1763837489716'}
           alt='Jaswanth'
           loading='lazy'
           className={clsx(
             'object-cover object-top rounded-xl',
-            isMaximized ? 'w-60 h-40' : 'w-30 h-20'
+            isMaximized ? 'w-60 h-40' : 'w-24 h-16 sm:w-30 sm:h-20'
           )}
         />
         <h3>
@@ -124,7 +124,7 @@ const Contact = () => {
         <p>
           xboy.wav@gmail.com
         </p>
-        <ul className='grid grid-cols-2 gap-3'>
+        <ul className='grid grid-cols-1 min-[380px]:grid-cols-2 gap-3'>
           {[
             {
               id: 'insta',
