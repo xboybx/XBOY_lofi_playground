@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useSiteStore } from '../store/siteStore';
-import { Save, LogIn, ArrowLeft, Plus, Trash2, Image as ImageIcon, Film, Wallpaper } from 'lucide-react';
+import { Save, LogIn, ArrowLeft, Plus, Trash2, Image as ImageIcon, Film, Wallpaper, Eye, EyeOff } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const isVideo = (url) => /\.(mp4|webm|mkv|ogg|mov|m4v)(\?.*)?$/i.test(url || '');
@@ -17,6 +17,7 @@ export default function Admin() {
   const { data, loading, updateData } = useSiteStore();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
   const [formData, setFormData] = useState(data);
   const [isSaving, setIsSaving] = useState(false);
@@ -84,13 +85,22 @@ export default function Admin() {
           <div className="text-center">
             <h1 className="text-2xl font-bold text-slate-200 mb-2">Admin Access</h1>
           </div>
-          <input
-            type="password"
-            placeholder="Password..."
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full bg-slate-800/50 border border-slate-700 rounded-xl px-4 py-3 text-slate-200 focus:outline-none focus:border-sky-500 transition-colors"
-          />
+          <div className="relative">
+            <input
+              type={showPassword ? 'text' : 'password'}
+              placeholder="Password..."
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full bg-slate-800/50 border border-slate-700 rounded-xl px-4 py-3 text-slate-200 focus:outline-none focus:border-sky-500 transition-colors"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute inset-y-0 right-0 px-4 flex items-center text-slate-500 hover:text-slate-300 transition-colors"
+            >
+              {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+            </button>
+          </div>
           <button type="submit" className="w-full bg-sky-600 hover:bg-sky-500 text-white font-medium py-3 rounded-xl flex items-center justify-center gap-2 transition-colors">
             <LogIn className="w-4 h-4" /> Log In
           </button>
