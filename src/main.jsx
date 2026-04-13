@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import './index.css'
 import App from './App.jsx'
 import Admin from './pages/Admin.jsx'
+import NotFound from './pages/NotFound.jsx'
 import { useSiteStore } from './store/siteStore'
 
 // Trigger fetching on boot
@@ -15,6 +16,8 @@ createRoot(document.getElementById('root')).render(
       <Routes>
         <Route path="/" element={<App />} />
         <Route path="/admin" element={<Admin />} />
+        {/* Catch-all route for 404 errors */}
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>
   </StrictMode>,
