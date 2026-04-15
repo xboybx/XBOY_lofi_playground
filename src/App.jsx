@@ -80,25 +80,61 @@ const App = () => {
   });
 
   // Read the active locally cycled wallpaper target
-  const targetUrl = allWallpapers[bgIndex] || allWallpapers[0] || '';
+  const rawTargetUrl = allWallpapers[bgIndex] || allWallpapers[0] || '';
 
-  // Crossfade State Context
+  const targetUrl = useMemo(() => {
+    if (!rawTargetUrl) return '';
+    // Apply Cloudinary Industry Standard Auto-Optimizations (images only!)
+    // For videos (< 1mb webm), forcing f_auto,q_auto can trigger on-the-fly Cloudinary transcoding
+    // which results in severe TTFB lag and stalls. We serve the raw optimized webm directly.
+    if (rawTargetUrl.includes('cloudinary.com') && rawTargetUrl.includes('/upload/')) {
+      if (isVideoUrl(rawTargetUrl)) {
+        return rawTargetUrl; // Serve native webm directly
+      } else if (!rawTargetUrl.includes('f_auto') && !rawTargetUrl.includes('q_auto')) {
+        return rawTargetUrl.replace('/upload/', '/upload/f_auto,q_auto/');
+      }
+    }
+    return rawTargetUrl;
+  }, [rawTargetUrl]);
+
+  // Industry Standard Buffer State Context
   const [activeUrl, setActiveUrl] = useState(targetUrl);
   const [prevUrl, setPrevUrl] = useState(null);
+  const [bufferingUrl, setBufferingUrl] = useState(null);
 
-  // Trigger crossfade sequence when target changes
+  // Trigger buffer swapping sequence when target changes
   useEffect(() => {
-    if (targetUrl !== activeUrl && targetUrl) {
-      setPrevUrl(activeUrl);
-      setActiveUrl(targetUrl);
+    if (targetUrl && targetUrl !== activeUrl && targetUrl !== bufferingUrl) {
+      if (isVideoUrl(targetUrl)) {
+        // Start buffering the new video invisibly in the background
+        setBufferingUrl(targetUrl);
+      } else {
+        // Images don't stream, transition immediately
+        setPrevUrl(activeUrl);
+        setActiveUrl(targetUrl);
+        setBufferingUrl(null);
+      }
+    }
+  }, [targetUrl, activeUrl, bufferingUrl]);
 
-      const timer = setTimeout(() => {
-        setPrevUrl(null);
-      }, 1500); // Detach previous video layer precisely after complete CSS fade-in
-
+  // Cleanly detach previous video layer exactly after CSS fade completes
+  useEffect(() => {
+    if (prevUrl) {
+      const timer = setTimeout(() => setPrevUrl(null), 1500);
       return () => clearTimeout(timer);
     }
-  }, [targetUrl, activeUrl]);
+  }, [prevUrl]);
+
+  // Promote buffered video to active wallpaper once browser streaming engine guarantees smooth play
+  const handleVideoBuffered = (url) => {
+    if (url === bufferingUrl) {
+      console.log(`[Action] Promoting buffer to active. Swap initiating for:`, url);
+      setPrevUrl(activeUrl);
+      setActiveUrl(url);
+      setBufferingUrl(null);
+      console.log('[Action] Video optimally buffered! Crossfading seamlessly without stutter:', url);
+    }
+  };
 
   // Set definitive global CSS gradient underneath ALL layers
   useEffect(() => {
@@ -107,36 +143,53 @@ const App = () => {
   }, []);
 
   // Universal Render Function for both fading and static wallpaper asset layers
-  const renderWallpaperLayer = (url, isPrevLayer) => {
+  const renderWallpaperLayer = (url, layerType) => {
     if (!url) return null;
     const isVid = isVideoUrl(url);
-    const zIndex = isPrevLayer ? 'z-[-5]' : 'z-0'; // Previous stays underneath at z-[5], new slides in over it at z-0
-    const animation = isPrevLayer ? '' : 'animate-crossfade';
 
+    let zIndex = 'z-0';
+    let animation = '';
+    let styles = {};
+
+    if (layerType === 'prev') {
+      zIndex = 'z-[-5]';
+    } else if (layerType === 'buffer') {
+      zIndex = 'z-[-10]';
+      styles = { opacity: 0.01, transform: 'translateZ(0)' }; // Minimum opacity + GPU acceleration
+    } else if (layerType === 'active') {
+      zIndex = 'z-0';
+      animation = 'animate-crossfade';
+      styles = { transform: 'translateZ(0)' }; // Force Hardware GPU Compositing
+    }
+
+    // Removed perspective and willChange to unlock native GPU hardware acceleration!
+    // Adding transform: translateZ(0) pushes it to the compositor layer
     const classNames = `fixed inset-0 w-full h-full object-cover pointer-events-none ${zIndex} ${animation}`;
-    const advancedStyles = {
-      transform: 'translate3d(0, 0, 0)',
-      backfaceVisibility: 'hidden',
-      WebkitBackfaceVisibility: 'hidden',
-      perspective: 1000,
-      WebkitPerspective: 1000,
-      willChange: isPrevLayer ? 'transform' : 'opacity, transform'
-    };
 
     if (isVid) {
       return (
         <video
-          key={`vid-${isPrevLayer ? 'prev' : 'active'}-${url}`}
+          key={url}
           autoPlay loop muted playsInline preload="auto" disablePictureInPicture
           className={classNames}
-          style={advancedStyles}
+          style={styles}
           src={url}
-          onCanPlay={() => !isPrevLayer && console.log('Wallpaper video cross-fading gracefully!', url)}
+          onCanPlayThrough={() => {
+            console.log(`[Video] [${layerType}] onCanPlayThrough: Browser buffered enough to play smoothly:`, url);
+            if (layerType === 'buffer') handleVideoBuffered(url);
+          }}
+          onWaiting={() => console.warn(`[Video] [${layerType}] onWaiting: Video playback stopped because of lack of temporary data (LAGGING!):`, url)}
+          onStalled={() => console.warn(`[Video] [${layerType}] onStalled: Browser is trying to get data, but data is not available (waiting on network or Cloudinary processing):`, url)}
+          onPlaying={() => console.log(`[Video] [${layerType}] onPlaying: Video is now actively playing:`, url)}
+          onSuspend={() => console.log(`[Video] [${layerType}] onSuspend: Browser is intentionally not downloading data (usually means buffer is full):`, url)}
+          onError={(e) => console.error(`[Video] [${layerType}] onError: Video error occurred!`, e.nativeEvent?.error || e, url)}
+          onLoadStart={() => console.log(`[Video] [${layerType}] onLoadStart: Started loading media:`, url)}
+          onLoadedData={() => console.log(`[Video] [${layerType}] onLoadedData: First frame loaded:`, url)}
         />
       );
     }
 
-    return <img key={`img-${isPrevLayer ? 'prev' : 'active'}-${url}`} src={url} alt="Wallpaper" className={classNames} style={advancedStyles} />;
+    return <img key={url} src={url} alt="Wallpaper" className={classNames} style={styles} />;
   };
 
   useEffect(() => {
@@ -147,7 +200,6 @@ const App = () => {
       // Preload modules during idle time for faster window opens
       // but don't render until user actually opens them
       import('./windows/Finder.jsx');
-      import('./windows/Resume.jsx');
       import('./windows/Safari.jsx');
       import('./windows/Terminal.jsx');
       import('./windows/Text.jsx');
@@ -175,8 +227,11 @@ const App = () => {
       )}
 
       {/* Desktop Background Stacking Engine */}
-      {renderWallpaperLayer(prevUrl, true)}
-      {renderWallpaperLayer(activeUrl, false)}
+      {[
+        prevUrl && { url: prevUrl, type: 'prev' },
+        activeUrl && { url: activeUrl, type: 'active' },
+        bufferingUrl && { url: bufferingUrl, type: 'buffer' },
+      ].filter(Boolean).map(layer => renderWallpaperLayer(layer.url, layer.type))}
       {/* Desktop Background Controls (Fixed to bottom right) */}
       {!isMobile && allWallpapers.length > 1 && (
         <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2 bg-black/50 backdrop-blur-md rounded-full p-2 border border-white/10 shadow-2xl animate-fade-in-up transition-opacity hover:opacity-100 opacity-60">
@@ -198,7 +253,6 @@ const App = () => {
         </Suspense>
         {(windows['terminal']?.isOpen || windows['terminal']?.isMinimized) && <Suspense fallback={null}><Terminal /></Suspense>}
         {(windows['safari']?.isOpen || windows['safari']?.isMinimized) && <Suspense fallback={null}><Safari /></Suspense>}
-        {(windows['resume']?.isOpen || windows['resume']?.isMinimized) && <Suspense fallback={null}><Resume /></Suspense>}
         {(windows['imgfile']?.isOpen || windows['imgfile']?.isMinimized) && <Suspense fallback={null}><Image /></Suspense>}
         {(windows['txtfile']?.isOpen || windows['txtfile']?.isMinimized) && <Suspense fallback={null}><Text /></Suspense>}
         {(windows['finder']?.isOpen || windows['finder']?.isMinimized) && <Suspense fallback={null}><Finder /></Suspense>}

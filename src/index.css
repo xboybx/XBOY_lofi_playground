@@ -593,31 +593,7 @@ body {
     }
   }
 
-  #resume {
-    @apply w-[800px] h-[700px] absolute top-16 left-5/12 bg-white shadow-2xl drop-shadow-2xl rounded-xl overflow-hidden;
 
-    @media (max-width: 768px) {
-      position: static !important;
-      width: 100% !important;
-      height: 100% !important;
-      border-radius: 0;
-      box-shadow: none;
-    }
-
-    #window-header {
-      h2 {
-        @apply font-bold text-sm text-center flex-1;
-
-        @media (max-width: 768px) {
-          font-size: 0.65rem;
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          max-width: 140px;
-        }
-      }
-    }
-  }
 
   #finder {
     @apply absolute w-3xl left-40 top-20 shadow-2xl drop-shadow-2xl overflow-hidden rounded-xl;

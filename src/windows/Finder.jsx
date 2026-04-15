@@ -14,7 +14,7 @@ const Finder = () => {
   const { activeLocation, setActiveLocation } = useLocationStore();
 
   const openItem = (item) => {
-    if(item.fileType === 'pdf') return openWindow('resume');
+    // if(item.fileType === 'pdf') return openWindow('resume');
     if(item.fileType === 'txt') return openWindow('txtfile', item);
     if(item.fileType === 'img') return openWindow('imgfile', item);
     if(item.kind === 'folder') return setActiveLocation(item);

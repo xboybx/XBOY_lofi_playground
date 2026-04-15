@@ -747,24 +747,6 @@ const ABOUT_LOCATION = {
   ],
 };
 
-const RESUME_LOCATION = {
-  id: 3,
-  type: "resume",
-  name: "Resume",
-  icon: "/icons/file.svg",
-  kind: "folder",
-  children: [
-    {
-      id: 1,
-      name: "Jeswanth_Mern_resume_2026.pdf",
-      icon: "/images/pdf.png",
-      kind: "file",
-      fileType: "pdf",
-      href: "https://ik.imagekit.io/mtkm3escy/Jeswanth_Mern_resume_2026_.pdf#view=FitH&toolbar=1&navpanes=0",
-    },
-  ],
-};
-
 const TRASH_LOCATION = {
   id: 4,
   type: "trash",
@@ -778,7 +760,7 @@ const TRASH_LOCATION = {
       icon: "/images/safari.webp",
       kind: "file",
       fileType: "url",
-      href: "https://www.jjaswanth.in",
+      href: "https://xboylofiartist-json.vercel.app/",
       position: "top-10 right-10",
     },
     {
@@ -796,7 +778,6 @@ const TRASH_LOCATION = {
 export const locations = {
   // work: WORK_LOCATION,
   about: ABOUT_LOCATION,
-  resume: RESUME_LOCATION,
   trash: TRASH_LOCATION,
 };
 
@@ -805,7 +786,6 @@ const INITIAL_Z_INDEX = 1000;
 const WINDOW_CONFIG = {
   finder: { isOpen: false, isMinimized: false, isMaximized: false, zIndex: INITIAL_Z_INDEX, data: null },
   contact: { isOpen: false, isMinimized: false, isMaximized: false, zIndex: INITIAL_Z_INDEX, data: null },
-  resume: { isOpen: false, isMinimized: false, isMaximized: false, zIndex: INITIAL_Z_INDEX, data: null },
   safari: { isOpen: false, isMinimized: false, isMaximized: false, zIndex: INITIAL_Z_INDEX, data: null },
   photos: { isOpen: false, isMinimized: false, isMaximized: false, zIndex: INITIAL_Z_INDEX, data: null },
   terminal: { isOpen: false, isMinimized: false, isMaximized: false, zIndex: INITIAL_Z_INDEX, data: null },

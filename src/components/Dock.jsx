@@ -80,8 +80,12 @@ const Dock = React.memo(() => {
 
     // Special case: Finder icon should open Finder focused on Work
     if (app.id === 'finder') {
-      openWindow('finder');
-      setActiveLocation(locations.work);
+      if (windows.finder.isOpen) {
+        closeWindow('finder');
+      } else {
+        openWindow('finder');
+        setActiveLocation(locations.work);
+      }
       return;
     }
 
