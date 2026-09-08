@@ -15,7 +15,7 @@ const CharSpan = React.memo(({ char, className, baseWeight }) => (
     className={className}
     style={{ fontVariationSettings: `'wght' ${baseWeight}` }}
   >
-    {char === "" ? "\u00A0" : char}
+    {char === " " ? "\u00A0" : char}
   </span>
 ));
 
@@ -100,14 +100,18 @@ const Welcome = React.memo(() => {
     if (isMobile) return () => {};
     
     let isMounted = true;
+    let draggableInstances = null;
+    let titleCleanup = null;
+    let subtitleCleanup = null;
+
     Promise.all([
       import('gsap'),
       import('gsap/Draggable')
     ]).then(([{ gsap }, { Draggable }]) => {
       if (!isMounted) return;
       gsap.registerPlugin(Draggable);
-      const titleCleanup = setupTextHover(titleRef.current, 'title', gsap);
-      const subtitleCleanup = setupTextHover(subtitleRef.current, 'subtitle', gsap);
+      titleCleanup = setupTextHover(titleRef.current, 'title', gsap);
+      subtitleCleanup = setupTextHover(subtitleRef.current, 'subtitle', gsap);
 
       const welcomeContainer = welcomeContainerRef.current;
       const welcomePlaceholder = welcomePlaceholderRef.current;
@@ -119,7 +123,7 @@ const Welcome = React.memo(() => {
         const screenHeight = window.innerHeight;
         const snapThreshold = Math.max(screenWidth, screenHeight);
 
-        Draggable.create(welcomeContainer, {
+        draggableInstances = Draggable.create(welcomeContainer, {
           type: "x,y",
           bounds: "body",
           cursor: "grab",
@@ -146,14 +150,14 @@ const Welcome = React.memo(() => {
           }
         });
       }
-
-      return () => {
-        subtitleCleanup();
-        titleCleanup();
-      };
     });
 
-    return () => { isMounted = false; };
+    return () => {
+      isMounted = false;
+      subtitleCleanup?.();
+      titleCleanup?.();
+      draggableInstances?.[0]?.kill();
+    };
   }, [isMobile]);
 
   return (

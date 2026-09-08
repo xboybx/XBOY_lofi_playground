@@ -201,32 +201,32 @@ const App = () => {
         bufferingUrl && { url: bufferingUrl, type: 'buffer' },
       ].filter(Boolean).map(layer => renderWallpaperLayer(layer.url, layer.type))}
 
-      {/* Background Theme Circle Button */}
-      {allWallpapers.length > 1 && (
-        <button
-          type="button"
-          onClick={nextBg}
-          aria-label="Change Wallpaper Theme"
-          title="Change Wallpaper Theme"
-          className="theme-circle-btn group fixed z-40 flex items-center justify-center rounded-full bg-black/50 hover:bg-black/80 active:scale-90 transition-all duration-300 backdrop-blur-xl border border-white/20 hover:border-white/40 shadow-2xl hover:shadow-[0_0_20px_rgba(255,255,255,0.25)] cursor-pointer"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.75"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="w-4 h-4 sm:w-5 sm:h-5 text-white/90 group-hover:text-white group-hover:rotate-180 transition-transform duration-500 ease-out"
-          >
-            <circle cx="12" cy="12" r="10" />
-            <path d="M12 2a10 10 0 0 1 0 20z" fill="currentColor" fillOpacity="0.45" />
-          </svg>
-        </button>
-      )}
-
       <main className="relative z-10 flex flex-col h-[100dvh] w-[100dvw] overflow-hidden">
+        {/* Background Theme Circle Button */}
+        {allWallpapers.length > 1 && (
+          <button
+            type="button"
+            onClick={nextBg}
+            aria-label="Change Wallpaper Theme"
+            title="Change Wallpaper Theme"
+            className="theme-circle-btn group fixed z-10 flex items-center justify-center rounded-full bg-black/50 hover:bg-black/80 active:scale-90 transition-all duration-300 backdrop-blur-xl border border-white/20 hover:border-white/40 shadow-2xl hover:shadow-[0_0_20px_rgba(255,255,255,0.25)] cursor-pointer"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.75"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="w-4 h-4 sm:w-5 sm:h-5 text-white/90 group-hover:text-white group-hover:rotate-180 transition-transform duration-500 ease-out"
+            >
+              <circle cx="12" cy="12" r="10" />
+              <path d="M12 2a10 10 0 0 1 0 20z" fill="currentColor" fillOpacity="0.45" />
+            </svg>
+          </button>
+        )}
+
         <Suspense fallback={<div />}>
           <NavBar />
           <Welcome />

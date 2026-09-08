@@ -78,11 +78,21 @@ const NavBar = React.memo(() => {
     return () => ro.disconnect();
   }, []);
 
+  // Clean up any GSAP transforms when switching to/from mobile
+  useEffect(() => {
+    if (isMobile && logoPortfolioRef.current) {
+      logoPortfolioRef.current.style.transform = '';
+      logoPortfolioRef.current.style.left = '';
+      logoPortfolioRef.current.style.top = '';
+    }
+  }, [isMobile]);
+
   useEffect(() => {
     // Skip drag animations on mobile
     if (isMobile) return;
 
     let isMounted = true;
+    let draggableInstances = null;
     Promise.all([
       import('gsap'),
       import('gsap/Draggable')
@@ -99,7 +109,7 @@ const NavBar = React.memo(() => {
       if (logoPortfolio && logoPortfolioPlaceholder) {
         const snapThreshold = 500;
 
-        Draggable.create(logoPortfolio, {
+        draggableInstances = Draggable.create(logoPortfolio, {
           type: "x,y",
           bounds: "body",
           cursor: "grab",
@@ -128,7 +138,10 @@ const NavBar = React.memo(() => {
       }
     });
 
-    return () => { isMounted = false; };
+    return () => {
+      isMounted = false;
+      draggableInstances?.[0]?.kill();
+    };
   }, [isMobile]);
 
   const handleNavLinkClick = useCallback((type) => {
