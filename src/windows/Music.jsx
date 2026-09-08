@@ -4,7 +4,8 @@ import WindowWrapper from '#hoc/WindowWrapper'
 import useWindowStore from '#store/window'
 import useAudioStore from '#store/audio'
 import React, { useEffect, useState, useMemo } from 'react'
-import { Play, Pause, SkipBack, SkipForward, Volume2, VolumeX, Shuffle, Repeat, Repeat1, Loader, ListMusic, Clock, Flame } from 'lucide-react/dist/esm/icons'
+import { Play, Pause, SkipBack, SkipForward, Volume2, VolumeX, Shuffle, Repeat, Repeat1, Loader, ListMusic, Clock, Flame, Disc3 } from 'lucide-react/dist/esm/icons'
+import { useIsMobile } from '../hooks/useIsMobile'
 
 const formatTime = (s) => {
   if (!s || Number.isNaN(s)) return '0:00'
@@ -14,6 +15,7 @@ const formatTime = (s) => {
 }
 
 const Music = () => {
+  const isMobile = useIsMobile(640);
   const isOpen = useWindowStore(state => state.windows.music?.isOpen);
   const { data } = useSiteStore();
   const songs = data?.music || [];
@@ -21,6 +23,7 @@ const Music = () => {
   const latestIds = data?.discover?.latestIds || [];
 
   const [activeTab, setActiveTab] = useState('all');
+  const [mobileView, setMobileView] = useState('player'); // 'player' | 'playlist'
 
   const filteredSongs = useMemo(() => {
     if (activeTab === 'featured') {
@@ -56,31 +59,25 @@ const Music = () => {
     toggleShuffle,
   } = useAudioStore();
 
-  // Initialize the shared audio controller once
   useEffect(() => {
     init(songs);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Pause playback when the Music window fully closes (not minimized)
   useEffect(() => {
     return () => {
       const musicWindow = useWindowStore.getState().windows['music'];
-      // If the window is minimized, it unmounts from DOM but shouldn't stop playing
       if (!musicWindow?.isMinimized) {
         useAudioStore.getState().pause();
       }
     };
   }, []);
 
-  // Add spacebar support for play/pause
   useEffect(() => {
     if (!isOpen) return;
 
     const handleKeyPress = (e) => {
-      // Only trigger if Music window is open and spacebar is pressed
       if (e.code === 'Space' || e.key === ' ') {
-        // Prevent default scrolling behavior
         e.preventDefault();
         togglePlay();
       }
@@ -102,174 +99,245 @@ const Music = () => {
 
   const selectSong = (songId) => {
     const idx = songs.findIndex(s => s.id === songId);
-    if (idx !== -1) setIndex(idx, { autoplay: true });
+    if (idx !== -1) {
+      setIndex(idx, { autoplay: true });
+      if (isMobile) {
+        setMobileView('player');
+      }
+    }
   };
 
   const current = playlist?.[currentIndex] || songs[currentIndex] || null;
 
-  // Get repeat icon based on mode
   const getRepeatIcon = () => {
     if (repeatMode === 'repeat-one') {
-      return <Repeat1 size={22} className='text-red-500' />;
+      return <Repeat1 size={20} className='text-red-500' />;
     } else if (repeatMode === 'autoplay') {
-      return <Repeat size={22} className='text-red-500' />;
+      return <Repeat size={20} className='text-red-500' />;
     }
-    return <Repeat size={22} className='text-gray-700' />;
+    return <Repeat size={20} className='text-gray-700' />;
   };
 
   return (
-    <div className="flex flex-col h-full">
-      <div id='window-header' className='window-drag-handle'>
+    <div className="flex flex-col h-full bg-white">
+      {/* Window Header */}
+      <div id='window-header' className='window-drag-handle flex items-center justify-between px-3 py-2 sm:px-4 sm:py-3 border-b border-gray-200 bg-gray-50 flex-shrink-0'>
         <WindowControls target="music" />
-        <h2 className='flex-1 text-center font-bold'>Music</h2>
-      </div>
-      <div className='flex w-full flex-1 min-h-0'>
-        <div className='sidebar pr-0 max-sm:hidden flex flex-col'>
-          <div className="flex gap-1 mb-2 pr-2 border-b border-gray-200 pb-2">
+        <h2 className='flex-1 text-center font-bold text-xs sm:text-sm truncate max-w-[50vw]'>Music</h2>
+        {isMobile ? (
+          <div className="flex items-center gap-1 bg-gray-200/70 p-0.5 rounded-lg">
             <button
-               onClick={() => setActiveTab('all')}
-               className={`flex-1 flex flex-col items-center p-1 rounded-md transition-colors ${activeTab === 'all' ? 'bg-blue-100 text-blue-700' : 'hover:bg-gray-200 text-gray-500'}`}
-               title="All Songs"
+              type="button"
+              onClick={() => setMobileView('player')}
+              className={`p-1 px-2 rounded-md text-[11px] font-medium transition-all ${mobileView === 'player' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-600'}`}
+              aria-label="Now Playing View"
             >
-               <ListMusic size={18} />
-               <span className="text-[10px] mt-1 font-medium">All</span>
+              <Disc3 size={14} className="inline mr-1" /> Player
             </button>
             <button
-               onClick={() => setActiveTab('latest')}
-               className={`flex-1 flex flex-col items-center p-1 rounded-md transition-colors ${activeTab === 'latest' ? 'bg-blue-100 text-blue-700' : 'hover:bg-gray-200 text-gray-500'}`}
-               title="Latest"
+              type="button"
+              onClick={() => setMobileView('playlist')}
+              className={`p-1 px-2 rounded-md text-[11px] font-medium transition-all ${mobileView === 'playlist' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-600'}`}
+              aria-label="Playlist View"
             >
-               <Clock size={18} />
-               <span className="text-[10px] mt-1 font-medium">Latest</span>
-            </button>
-            <button
-               onClick={() => setActiveTab('featured')}
-               className={`flex-1 flex flex-col items-center p-1 rounded-md transition-colors ${activeTab === 'featured' ? 'bg-blue-100 text-blue-700' : 'hover:bg-gray-200 text-gray-500'}`}
-               title="Featured"
-            >
-               <Flame size={18} />
-               <span className="text-[10px] mt-1 font-medium">Featured</span>
+              <ListMusic size={14} className="inline mr-1" /> Songs
             </button>
           </div>
-          <ul className="overflow-y-auto pr-2 pb-2">
+        ) : (
+          <div className="w-12" />
+        )}
+      </div>
+
+      <div className='flex w-full flex-1 min-h-0 overflow-hidden'>
+        {/* Sidebar / Playlist view */}
+        <div className={`sidebar flex-col border-r border-gray-200 p-3 sm:p-4 bg-gray-50 flex-shrink-0 ${
+          isMobile ? (mobileView === 'playlist' ? 'flex w-full flex-1' : 'hidden') : 'flex w-4/12 max-w-[280px]'
+        }`}>
+          <div className="flex gap-1 mb-2 border-b border-gray-200 pb-2 flex-shrink-0">
+            <button
+              type="button"
+              onClick={() => setActiveTab('all')}
+              className={`flex-1 flex flex-col items-center p-1 rounded-md transition-colors ${activeTab === 'all' ? 'bg-blue-100 text-blue-700' : 'hover:bg-gray-200 text-gray-500'}`}
+              title="All Songs"
+            >
+              <ListMusic size={16} />
+              <span className="text-[10px] mt-0.5 font-medium">All</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('latest')}
+              className={`flex-1 flex flex-col items-center p-1 rounded-md transition-colors ${activeTab === 'latest' ? 'bg-blue-100 text-blue-700' : 'hover:bg-gray-200 text-gray-500'}`}
+              title="Latest"
+            >
+              <Clock size={16} />
+              <span className="text-[10px] mt-0.5 font-medium">Latest</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('featured')}
+              className={`flex-1 flex flex-col items-center p-1 rounded-md transition-colors ${activeTab === 'featured' ? 'bg-blue-100 text-blue-700' : 'hover:bg-gray-200 text-gray-500'}`}
+              title="Featured"
+            >
+              <Flame size={16} />
+              <span className="text-[10px] mt-0.5 font-medium">Featured</span>
+            </button>
+          </div>
+          <ul className="overflow-y-auto pr-1 pb-2 space-y-1 flex-1">
             {filteredSongs.map((song) => {
               const globalIdx = songs.findIndex(s => s.id === song.id);
+              const isSelected = globalIdx === currentIndex;
               return (
                 <li
                   key={song.id}
                   onClick={() => selectSong(song.id)}
-                  className={globalIdx === currentIndex ? 'bg-blue-100 text-blue-700' : 'hover:bg-gray-200'}
+                  className={`flex items-center gap-2.5 p-2 rounded-lg cursor-pointer transition-colors text-xs sm:text-sm ${
+                    isSelected ? 'bg-blue-100 text-blue-700 font-medium' : 'hover:bg-gray-200 text-gray-700'
+                  }`}
                   title={song.title}
                 >
-                  <img src={song.cover} alt="cover" className='w-5 h-5 object-cover rounded' loading='lazy' />
-                  <p className='truncate'>{song.title}</p>
+                  <img src={song.cover || '/images/music.webp'} alt="cover" className='w-7 h-7 object-cover rounded shadow-sm shrink-0' loading='lazy' />
+                  <div className="flex-1 min-w-0">
+                    <p className='truncate'>{song.title}</p>
+                    <p className='text-[10px] text-gray-500 truncate'>{song.author}</p>
+                  </div>
+                  {isSelected && isPlaying && (
+                    <span className="w-2 h-2 rounded-full bg-blue-600 animate-pulse shrink-0" />
+                  )}
                 </li>
               );
             })}
           </ul>
         </div>
-        <div className='player'>
-          <div className='cover relative'>
+
+        {/* Player View */}
+        <div className={`player flex-1 flex flex-col items-center justify-between p-4 sm:p-6 overflow-y-auto min-h-0 bg-white ${
+          isMobile && mobileView === 'playlist' ? 'hidden' : 'flex'
+        }`}>
+          <div className='cover relative w-full flex justify-center my-auto max-h-[35vh]'>
             <img
               src={current?.cover || '/images/music.webp'}
               alt={current?.title || 'Cover'}
               loading='lazy'
-              className={`transition-opacity duration-300 ${isLoading ? 'opacity-50' : 'opacity-100'}`}
+              className={`max-h-[30vh] w-auto aspect-square rounded-2xl shadow-xl object-cover transition-opacity duration-300 ${isLoading ? 'opacity-50' : 'opacity-100'}`}
             />
           </div>
-          <div className='mt-4 sm:mt-6 text-center'>
-            <h3 className='text-xl sm:text-3xl font-bold truncate px-2'>{current?.title || 'Unknown'}</h3>
-            <p className='text-xs sm:text-sm text-gray-500 mt-1 truncate px-2'>{current?.author || 'Unknown'}</p>
-          </div>
-          <div className='sliders mt-3'>
-            <div className='flex-1'>
+
+          <div className='w-full max-w-md flex flex-col items-center my-auto'>
+            <div className='text-center w-full px-2 mb-2'>
+              <h3 className='text-base sm:text-2xl font-bold truncate text-gray-900'>{current?.title || 'Select a song'}</h3>
+              <p className='text-xs sm:text-sm text-gray-500 mt-0.5 truncate'>{current?.author || 'XBOY Lofi'}</p>
+            </div>
+
+            {/* Seek Bar */}
+            <div className='w-full mt-2'>
+              <div className='relative w-full'>
+                <input
+                  type='range'
+                  min={0}
+                  max={Math.max(duration, 0)}
+                  step={0.01}
+                  value={Math.min(currentTime, duration || 0)}
+                  onChange={seekHandler}
+                  disabled={isLoading}
+                  className='w-full accent-red-500 disabled:opacity-50 py-1'
+                  aria-label="Seek position"
+                  onMouseDown={(e) => e.stopPropagation()}
+                  onTouchStart={(e) => e.stopPropagation()}
+                />
+              </div>
+              <div className='flex justify-between text-[10px] sm:text-xs text-gray-500 mt-1 px-1'>
+                <span>{formatTime(currentTime)}</span>
+                <span>{formatTime(duration)}</span>
+              </div>
+            </div>
+
+            {/* Playback Controls */}
+            <div className='flex items-center justify-center gap-3 sm:gap-6 mt-3'>
+              <button
+                type="button"
+                aria-label='Shuffle'
+                onClick={toggleShuffle}
+                className={`p-1.5 sm:p-2 rounded-full ${shuffle ? 'bg-red-100' : 'bg-gray-100'} hover:bg-gray-200 transition-colors cursor-pointer`}
+                title={shuffle ? 'Shuffle: On' : 'Shuffle: Off'}
+              >
+                <Shuffle size={18} className={shuffle ? 'text-red-500' : 'text-gray-700'} />
+              </button>
+              <button
+                type="button"
+                aria-label='Previous'
+                onClick={prev}
+                className='p-1.5 sm:p-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors cursor-pointer'
+              >
+                <SkipBack size={18} className='text-gray-700' />
+              </button>
+              <button
+                type="button"
+                aria-label='Play/Pause'
+                onClick={togglePlay}
+                disabled={isLoading}
+                className='w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-red-500 flex items-center justify-center shadow-md hover:bg-red-600 active:scale-95 transition-all disabled:opacity-75 cursor-pointer text-white'
+              >
+                {isLoading ? (
+                  <Loader size={22} className='text-white animate-spin' />
+                ) : isPlaying ? (
+                  <Pause size={22} className='text-white' />
+                ) : (
+                  <Play size={22} className='text-white ml-0.5' />
+                )}
+              </button>
+              <button
+                type="button"
+                aria-label='Next'
+                onClick={next}
+                className='p-1.5 sm:p-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors cursor-pointer'
+              >
+                <SkipForward size={18} className='text-gray-700' />
+              </button>
+              <button
+                type="button"
+                aria-label='Repeat Mode'
+                onClick={toggleRepeatMode}
+                className={`p-1.5 sm:p-2 rounded-full ${repeatMode !== 'none' ? 'bg-red-100' : 'bg-gray-100'} hover:bg-gray-200 transition-colors cursor-pointer`}
+                title={
+                  repeatMode === 'none' ? 'Repeat: Off' :
+                    repeatMode === 'autoplay' ? 'Autoplay: On' :
+                      'Repeat One: On'
+                }
+              >
+                {getRepeatIcon()}
+              </button>
+            </div>
+
+            {/* Volume */}
+            <div className='flex items-center justify-center gap-2 mt-3 w-full max-w-xs px-4'>
+              <button
+                type="button"
+                aria-label='Mute'
+                onClick={toggleMute}
+                className='p-1.5 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 transition-colors cursor-pointer'
+              >
+                {muted || volume === 0 ? <VolumeX size={15} /> : <Volume2 size={15} />}
+              </button>
               <input
                 type='range'
                 min={0}
-                max={Math.max(duration, 0)}
+                max={1}
                 step={0.01}
-                value={Math.min(currentTime, duration || 0)}
-                onChange={seekHandler}
-                disabled={isLoading}
-                className='w-full accent-red-500 disabled:opacity-50 py-2'
+                value={volume}
+                onChange={changeVolume}
+                className='accent-gray-600 flex-1 py-1'
+                aria-label="Volume"
                 onMouseDown={(e) => e.stopPropagation()}
-                onMouseDownCapture={(e) => e.stopPropagation()}
-                onPointerDown={(e) => e.stopPropagation()}
                 onTouchStart={(e) => e.stopPropagation()}
               />
             </div>
           </div>
-          <div className='flex justify-between text-xs text-gray-500 mt-1'>
-            <span>{formatTime(currentTime)}</span> &nbsp; - &nbsp;
-            <span>{formatTime(duration)}</span>
-          </div>
-          <div className='flex items-center justify-center gap-3 sm:gap-6 mt-4'>
-            <button
-              aria-label='Shuffle'
-              onClick={toggleShuffle}
-              className={`p-2 rounded-full ${shuffle ? 'bg-red-100' : 'bg-gray-100'} hover:bg-gray-200`}
-              title={shuffle ? 'Shuffle: On' : 'Shuffle: Off'}
-            >
-              <Shuffle size={22} className={shuffle ? 'text-red-500' : 'text-gray-700'} />
-            </button>
-            <button aria-label='Previous' onClick={prev} className='p-2 rounded-full bg-gray-100 hover:bg-gray-200'>
-              <SkipBack size={22} className='text-gray-700' />
-            </button>
-            <button
-              aria-label='Play/Pause'
-              onClick={togglePlay}
-              disabled={isLoading}
-              className='w-12 h-12 rounded-full bg-red-500 flex items-center justify-center shadow-md hover:bg-red-600 disabled:opacity-75'
-            >
-              {isLoading ? (
-                <Loader size={28} className='text-white animate-spin' />
-              ) : isPlaying ? (
-                <Pause size={28} className='text-white' />
-              ) : (
-                <Play size={28} className='text-white ml-1' />
-              )}
-            </button>
-            <button aria-label='Next' onClick={next} className='p-2 rounded-full bg-gray-100 hover:bg-gray-200'>
-              <SkipForward size={22} className='text-gray-700' />
-            </button>
-            <button
-              aria-label='Repeat Mode'
-              onClick={toggleRepeatMode}
-              className={`p-2 rounded-full ${repeatMode !== 'none' ? 'bg-red-100' : 'bg-gray-100'} hover:bg-gray-200`}
-              title={
-                repeatMode === 'none' ? 'Repeat: Off' :
-                  repeatMode === 'autoplay' ? 'Autoplay: On' :
-                    'Repeat One: On'
-              }
-            >
-              {getRepeatIcon()}
-            </button>
-          </div>
-          <div className='sliders mt-4 flex-center mr-2 scale-75'>
-            <button aria-label='Mute' onClick={toggleMute} className='p-2 rounded bg-gray-100 hover:bg-gray-200'>
-              {muted || volume === 0 ? <VolumeX size={18} className='text-gray-600' /> : <Volume2 size={18} className='text-gray-600' />}
-            </button>
-            <input
-              type='range'
-              min={0}
-              max={1}
-              step={0.01}
-              value={volume}
-              onChange={changeVolume}
-              className='accent-gray-600 w-1/2 mx-auto py-2'
-              onMouseDown={(e) => e.stopPropagation()}
-              onMouseDownCapture={(e) => e.stopPropagation()}
-              onPointerDown={(e) => e.stopPropagation()}
-              onTouchStart={(e) => e.stopPropagation()}
-            />
-          </div>
-          {/* Centralized audio: no <audio> element needed; store manages a single Audio instance */}
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-const MusicWindow = WindowWrapper(Music, 'music')
+const MusicWindow = WindowWrapper(Music, 'music');
 
-export default MusicWindow
+export default MusicWindow;

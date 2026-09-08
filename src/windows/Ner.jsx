@@ -31,19 +31,15 @@ const Ner = () => {
   // Handle audio cleanup when window is closed
   useEffect(() => {
     if (!isOpen && iframeRef.current) {
-      // Stop main audio store
       pause();
-      
-      // Send stop message to iframe
       try {
         iframeRef.current.contentWindow?.postMessage({ 
           type: 'pause-all-audio'
         }, '*');
       } catch (e) {
-        // Ignore postMessage errors
+        // Ignore
       }
       
-      // Force stop by blanking iframe after a short delay
       const timeoutId = setTimeout(() => {
         if (iframeRef.current && !isOpen) {
           const src = iframeRef.current.src;
@@ -54,20 +50,15 @@ const Ner = () => {
       
       return () => clearTimeout(timeoutId);
     } else if (isOpen && iframeRef.current?.dataset.originalSrc) {
-      // Restore iframe when reopening
       const src = iframeRef.current.dataset.originalSrc;
       iframeRef.current.src = src;
       delete iframeRef.current.dataset.originalSrc;
     }
   }, [isOpen, pause]);
 
-  // Cleanup on component unmount
   useEffect(() => {
     return () => {
-      // Stop main audio when component unmounts
       pause();
-      
-      // Try to stop iframe audio on unmount
       if (iframeRef.current) {
         try {
           iframeRef.current.contentWindow?.postMessage({ 
@@ -75,21 +66,22 @@ const Ner = () => {
             action: 'stop-audio' 
           }, '*');
         } catch (error) {
-          // Ignore errors on unmount
+          // Ignore
         }
       }
     };
   }, [pause]);
 
   return (
-    <>
+    <div className="flex flex-col h-full bg-white overflow-hidden">
       <div 
         id='window-header' 
-        className='window-drag-handle'
-        style={{ backgroundColor: '#f3f4f6' }}
+        className='window-drag-handle flex items-center justify-between px-3 py-2 sm:px-4 sm:py-3 border-b border-gray-200 bg-gray-50 flex-shrink-0'
       >
         <WindowControls target="ner" />
-        <h2>SlapNer</h2>
+        <h2 className="font-bold text-xs sm:text-sm text-gray-700 truncate max-w-[50vw] text-center flex-1">
+          SlapNer
+        </h2>
         <a
           href="https://slapner.vercel.app"
           target="_blank"
@@ -98,17 +90,12 @@ const Ner = () => {
           onClick={(e) => {
             e.stopPropagation();
           }}
+          className="p-1 hover:bg-gray-200 rounded transition-colors text-gray-600"
         >
-          <ExternalLink className="icon mr-3" />
+          <ExternalLink className="w-4 h-4" />
         </a>
       </div>
-      <div
-        style={{
-          position: 'relative',
-          width: '100%',
-          height: 'calc(100% - 48px)',
-        }}
-      >
+      <div className="relative flex-1 w-full min-h-0 overflow-hidden bg-white">
         {!isFocused && (
           <button
             type="button"
@@ -117,28 +104,20 @@ const Ner = () => {
               e.stopPropagation();
               focusWindow('ner');
             }}
-            style={{
-              position: 'absolute',
-              inset: 0,
-              background: 'transparent',
-              cursor: 'pointer',
-            }}
+            className="absolute inset-0 bg-transparent cursor-pointer z-10"
           />
         )}
         <iframe
           ref={iframeRef}
           src="https://slapner.vercel.app"
+          className="w-full h-full border-none block"
           style={{
-            width: '100%',
-            height: '100%',
-            border: 'none',
-            display: 'block',
             pointerEvents: isFocused ? 'auto' : 'none',
           }}
           title="SlapNer"
         />
       </div>
-    </>
+    </div>
   )
 }
 

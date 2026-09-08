@@ -2,13 +2,12 @@ import React, { useRef, useEffect } from "react";
 import MusicPopup from "./MusicPopup";
 import { useSiteStore } from "../store/siteStore";
 import useAudioStore from "#store/audio";
-
-const isMobile = typeof window !== 'undefined' && window.innerWidth <= 640;
+import { useIsMobile } from "../hooks/useIsMobile";
 
 const FONT_WEIGHTS = {
-  subtitle: { min: 100, max:400, default: 100},
-  title: { min: 400, max: 900, default: 400},
-}
+  subtitle: { min: 100, max: 400, default: 100 },
+  title: { min: 400, max: 900, default: 400 },
+};
 
 // Memoized character span component
 const CharSpan = React.memo(({ char, className, baseWeight }) => (
@@ -37,31 +36,30 @@ const setupTextHover = (container, type, gsap) => {
   if (!container || !gsap) return () => {};
 
   const letters = container.querySelectorAll("span");
-
-  const { min, max, default: base} = FONT_WEIGHTS[type];
+  const { min, max, default: base } = FONT_WEIGHTS[type];
 
   const animateLetter = (letter, weight, duration = 0.25) => {
     return gsap.to(letter, {
       duration,
       ease: 'power2.out',
       fontVariationSettings: `'wght' ${weight}`,
-    })
+    });
   };
 
   const handleMouseMove = (e) => {
-    const {left} = container.getBoundingClientRect();
+    const { left } = container.getBoundingClientRect();
     const mouseX = e.clientX - left;
 
     letters.forEach((letter) => {
-      const { left: l, width: w} = letter.getBoundingClientRect();
+      const { left: l, width: w } = letter.getBoundingClientRect();
       const distance = Math.abs(mouseX - (l - left + w / 2));
-      const intensity = Math.exp(-(distance ** 2)/ 20000);
+      const intensity = Math.exp(-(distance ** 2) / 20000);
 
-      animateLetter(letter, min + (max-min) * intensity); 
-    })
-  }
+      animateLetter(letter, min + (max - min) * intensity); 
+    });
+  };
 
-  const handleMouseLeave = () => letters.forEach((letter) => animateLetter(letter, base, 0.3))
+  const handleMouseLeave = () => letters.forEach((letter) => animateLetter(letter, base, 0.3));
 
   container.addEventListener("mousemove", handleMouseMove);
   container.addEventListener("mouseleave", handleMouseLeave);
@@ -69,17 +67,17 @@ const setupTextHover = (container, type, gsap) => {
   return () => {
     container.removeEventListener("mousemove", handleMouseMove);
     container.removeEventListener("mouseleave", handleMouseLeave);
-  }
-}
+  };
+};
 
 const Welcome = React.memo(() => {
+  const isMobile = useIsMobile(768);
   const titleRef = useRef(null);
   const subtitleRef = useRef(null);
   const welcomeContainerRef = useRef(null);
   const welcomePlaceholderRef = useRef(null);
 
   // Unconditionally initialize the global audio controller with the site's playlist
-  // so the MusicPopup always renders on boot regardless of the window state.
   const { data } = useSiteStore();
   const initAudio = useAudioStore(state => state.init);
   useEffect(() => {
@@ -88,30 +86,38 @@ const Welcome = React.memo(() => {
     }
   }, [data?.music, initAudio]);
 
+  // Clean up any GSAP transforms when switching to/from mobile
   useEffect(() => {
-    // Skip text hover effects on mobile for better performance
+    if (isMobile && welcomeContainerRef.current) {
+      welcomeContainerRef.current.style.transform = '';
+      welcomeContainerRef.current.style.left = '';
+      welcomeContainerRef.current.style.top = '';
+    }
+  }, [isMobile]);
+
+  useEffect(() => {
+    // Skip hover effects and Draggable on mobile
     if (isMobile) return () => {};
     
-    // Dynamically import GSAP only on desktop
+    let isMounted = true;
     Promise.all([
       import('gsap'),
       import('gsap/Draggable')
     ]).then(([{ gsap }, { Draggable }]) => {
+      if (!isMounted) return;
+      gsap.registerPlugin(Draggable);
       const titleCleanup = setupTextHover(titleRef.current, 'title', gsap);
       const subtitleCleanup = setupTextHover(subtitleRef.current, 'subtitle', gsap);
 
-      // Implement drag functionality with screen-wide snap threshold (desktop only)
       const welcomeContainer = welcomeContainerRef.current;
       const welcomePlaceholder = welcomePlaceholderRef.current;
 
       if (welcomeContainer && welcomePlaceholder) {
-        // Hide placeholder initially
         gsap.set(welcomePlaceholder, { opacity: 0 });
 
-        // Get screen dimensions for snap threshold
         const screenWidth = window.innerWidth;
         const screenHeight = window.innerHeight;
-        const snapThreshold = Math.max(screenWidth, screenHeight); // Entire screen
+        const snapThreshold = Math.max(screenWidth, screenHeight);
 
         Draggable.create(welcomeContainer, {
           type: "x,y",
@@ -144,24 +150,26 @@ const Welcome = React.memo(() => {
       return () => {
         subtitleCleanup();
         titleCleanup();
-      }
+      };
     });
-  }, [])
+
+    return () => { isMounted = false; };
+  }, [isMobile]);
 
   return (
     <>
-      <section id="welcome" ref={welcomeContainerRef}>
-        <p ref={subtitleRef}>
+      <section id="welcome" ref={welcomeContainerRef} className="w-full flex flex-col items-center justify-center text-center px-4 select-none">
+        <p ref={subtitleRef} className="w-full text-center">
           {renderText(
             "welcome to my lofi space",
-            "text-sm sm:text-xl md:text-3xl font-georama text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)] tracking-wide",
+            "text-[11px] min-[340px]:text-xs sm:text-base md:text-2xl font-georama text-white/90 drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)] tracking-wider inline-block",
             100
           )}
         </p>
-        <h1 ref={titleRef} className="mt-4 sm:mt-7">
+        <h1 ref={titleRef} className="mt-1 sm:mt-4 w-full text-center">
           {renderText(
             "XBOY",
-            "text-7xl sm:text-8xl md:text-9xl italic font-georama text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)] tracking-wide" 
+            "text-4xl min-[340px]:text-5xl sm:text-7xl md:text-8xl 3xl:text-9xl italic font-georama text-white drop-shadow-[0_4px_16px_rgba(0,0,0,0.8)] tracking-normal sm:tracking-wide inline-block" 
           )}
         </h1>
       </section>

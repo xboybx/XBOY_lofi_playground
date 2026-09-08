@@ -6,20 +6,18 @@ import { useEffect, useRef, useCallback, useMemo } from "react";
 import React from "react";
 import Clock from './Clock';
 import NavLink from "./NavLink";
+import { useIsMobile } from "../hooks/useIsMobile";
 import {
   Instagram,
   Youtube,
   Github,
   Linkedin,
   Mail,
-  Music as MusicIcon // Renamed to avoid confusion with window types
+  Music as MusicIcon
 } from 'lucide-react';
 
-// Only import heavy dependencies on desktop
-const isMobile = typeof window !== 'undefined' && window.innerWidth <= 640;
-
 const NavBar = React.memo(() => {
-
+  const isMobile = useIsMobile(640);
   const openWindow = useWindowStore(state => state.openWindow);
   const setActiveLocation = useLocationStore(state => state.setActiveLocation);
   const { data: siteData } = useSiteStore();
@@ -60,12 +58,11 @@ const NavBar = React.memo(() => {
   }, [siteData?.socials]);
 
   const wrapperRef = useRef(null);
-  const gifRef = useRef(null);
   const logoPortfolioRef = useRef(null);
   const logoPortfolioPlaceholderRef = useRef(null);
   const navRef = useRef(null);
 
-  // Measure navbar height and expose as CSS variable so MusicPopup stays flush
+  // Measure navbar height and expose as CSS variable
   useEffect(() => {
     const nav = navRef.current;
     if (!nav) return;
@@ -75,33 +72,30 @@ const NavBar = React.memo(() => {
       document.documentElement.style.setProperty('--navbar-height', `${h}px`);
     };
 
-    updateHeight(); // run immediately
+    updateHeight();
     const ro = new ResizeObserver(updateHeight);
     ro.observe(nav);
     return () => ro.disconnect();
   }, []);
 
   useEffect(() => {
-    // Skip animations on mobile for better performance
+    // Skip drag animations on mobile
     if (isMobile) return;
 
-    // Dynamically import GSAP only on desktop
+    let isMounted = true;
     Promise.all([
       import('gsap'),
       import('gsap/Draggable')
     ]).then(([{ gsap }, { Draggable }]) => {
-      const wrapper = wrapperRef.current;
+      if (!isMounted) return;
+      gsap.registerPlugin(Draggable);
       const logoPortfolio = logoPortfolioRef.current;
       const logoPortfolioPlaceholder = logoPortfolioPlaceholderRef.current;
 
-      if (!wrapper) return;
-
-      // Hide placeholders initially
       if (logoPortfolioPlaceholder) {
         gsap.set(logoPortfolioPlaceholder, { opacity: 0 });
       }
 
-      // Implement drag functionality for logo + portfolio text
       if (logoPortfolio && logoPortfolioPlaceholder) {
         const snapThreshold = 500;
 
@@ -133,7 +127,9 @@ const NavBar = React.memo(() => {
         });
       }
     });
-  }, []);
+
+    return () => { isMounted = false; };
+  }, [isMobile]);
 
   const handleNavLinkClick = useCallback((type) => {
     if (!type) return;
@@ -156,13 +152,13 @@ const NavBar = React.memo(() => {
   }, [openWindow, setActiveLocation]);
 
   return (
-    <nav ref={navRef}>
-      <div>
-        {/* Draggable logo + portfolio section */}
-        <div className="logo-portfolio-container" ref={logoPortfolioRef}>
-          <img src="/images/logo.svg" alt="logo" />
+    <nav ref={navRef} className="w-full flex justify-between items-center bg-white/50 backdrop-blur-3xl px-3 py-2 sm:px-5 sm:py-3 select-none z-50">
+      <div className="flex items-center gap-2 sm:gap-5 min-w-0">
+        {/* Logo + portfolio section */}
+        <div className="logo-portfolio-container flex items-center gap-2 sm:gap-3 flex-shrink-0" ref={logoPortfolioRef}>
+          <img src="/images/logo.svg" alt="logo" className="w-5 h-5 sm:w-6 sm:h-6 object-contain" />
           <div className="portfolio-wrapper" ref={wrapperRef}>
-            <p className="font-bold portfolio-text">XBOY</p>
+            <p className="font-bold portfolio-text text-xs sm:text-sm tracking-wide text-black/90">XBOY</p>
           </div>
         </div>
 
@@ -173,7 +169,7 @@ const NavBar = React.memo(() => {
         )}
 
         {/* Nav links — hidden on mobile */}
-        <ul className="max-sm:hidden">
+        <ul className="max-sm:hidden flex items-center gap-4">
           {activeMusicPlatforms.length > 0
             ? activeMusicPlatforms.map(platform => (
               <NavLink
@@ -190,9 +186,9 @@ const NavBar = React.memo(() => {
         </ul>
       </div>
 
-      {/* Right section: socials + icons + clock — on mobile only show clock */}
-      <div>
-        <ul className="flex items-center gap-4 border-r border-[#1c1c1c]/10 pr-4 mr-1 max-sm:hidden">
+      {/* Right section: socials + icons + clock */}
+      <div className="flex items-center gap-2 sm:gap-4 flex-shrink-0">
+        <ul className="flex items-center gap-3 border-r border-[#1c1c1c]/10 pr-3 mr-1 max-sm:hidden">
           {activeSocials.map(social => (
             <li key={social.key}>
               <a
@@ -208,7 +204,7 @@ const NavBar = React.memo(() => {
           ))}
         </ul>
 
-        <ul className="flex items-center max-sm:hidden">
+        <ul className="flex items-center gap-2 max-sm:hidden">
           {navIcons.map(({ id, img, type, action }) => (
             <li key={id} onClick={() => handleIconClick({ type, action })}>
               <img
@@ -220,7 +216,7 @@ const NavBar = React.memo(() => {
           ))}
         </ul>
 
-        {/* Clock component with 60s updates — always visible */}
+        {/* Clock component — always visible */}
         <Clock />
       </div>
     </nav>

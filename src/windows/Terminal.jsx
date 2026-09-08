@@ -2,8 +2,10 @@ import { WindowControls } from '#components'
 import WindowWrapper from '#hoc/WindowWrapper'
 import React, { useState, useEffect, useRef } from 'react'
 import { Info, Trash2 } from 'lucide-react/dist/esm/icons'
+import { useIsMobile } from '../hooks/useIsMobile'
 
 const Terminal = () => {
+  const isMobile = useIsMobile(640);
   const [input, setInput] = useState('')
   const [history, setHistory] = useState([
     { type: 'system', content: 'xboybx@macbook ~ % ./lofi_focus.sh' },
@@ -45,7 +47,8 @@ const Terminal = () => {
 
     const cmd = input.trim().toLowerCase();
     const args = cmd.split(' ');
-    const newHistory = [...history, { type: 'user', content: `xboybx@macbook ~ % ${input}` }];
+    const promptPrefix = isMobile ? '~ %' : 'xboybx@macbook ~ %';
+    const newHistory = [...history, { type: 'user', content: `${promptPrefix} ${input}` }];
 
     switch (args[0]) {
       case 'help':
@@ -97,28 +100,26 @@ const Terminal = () => {
 
   const handleHelp = () => {
     setHistory(prev => [...prev, 
-      { type: 'user', content: `xboybx@macbook ~ % help` },
+      { type: 'user', content: isMobile ? `~ % help` : `xboybx@macbook ~ % help` },
       { type: 'system', content: 'Available commands:\n  timer <min> - Start a focus timer (e.g. timer 25)\n  stop        - Stop the current timer\n  zen         - Get a lo-fi quote\n  clear       - Clear the console\n  date        - Show current date/time' }
     ]);
   };
 
   return (
     <div 
-      className="flex flex-col h-full bg-[#1c1c1e] text-[#4ade80] font-mono text-sm md:text-[15px] selection:bg-[#4ade80]/30"
+      className="flex flex-col h-full bg-[#1c1c1e] text-[#4ade80] font-mono text-xs sm:text-sm selection:bg-[#4ade80]/30 overflow-hidden"
       onClick={() => inputRef.current?.focus()}
     >
-      <div id='window-header' className='window-drag-handle border-b border-gray-800 bg-[#2d2d2d] flex flex-row items-center justify-between'>
-        <div className="w-[80px]">
-          <WindowControls target='terminal' />
-        </div>
-        <h2 className="flex-1 text-center text-gray-400 font-bold text-xs pb-1">
+      <div id='window-header' className='window-drag-handle border-b border-gray-800 bg-[#2d2d2d] flex flex-row items-center justify-between px-3 py-2 sm:px-4 sm:py-3 flex-shrink-0'>
+        <WindowControls target='terminal' />
+        <h2 className="flex-1 text-center text-gray-400 font-bold text-xs truncate max-w-[45vw]">
           xboybx@macbook ~ zsh
         </h2>
-        <div className="w-[80px] flex justify-end gap-3 pr-4 items-center">
+        <div className="flex items-center gap-2">
           <button 
             type="button"
             onClick={(e) => { e.stopPropagation(); handleHelp(); }}
-            className="text-gray-400 hover:text-white transition-colors"
+            className="text-gray-400 hover:text-white transition-colors p-1"
             title="Commands Info"
           >
             <Info size={14} />
@@ -126,7 +127,7 @@ const Terminal = () => {
           <button 
             type="button"
             onClick={(e) => { e.stopPropagation(); handleClear(); }}
-            className="text-gray-400 hover:text-red-400 transition-colors"
+            className="text-gray-400 hover:text-red-400 transition-colors p-1"
             title="Clear Terminal"
           >
             <Trash2 size={14} />
@@ -134,26 +135,28 @@ const Terminal = () => {
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-5 space-y-1.5 scroll-smooth custom-scrollbar">
+      <div className="flex-1 overflow-y-auto p-3 sm:p-5 space-y-1.5 scroll-smooth custom-scrollbar min-h-0">
         {history.map((line, i) => (
           <div key={i} className={line.type === 'error' ? 'text-red-400' : line.type === 'zen' ? 'text-cyan-400 italic' : line.type === 'user' ? 'text-white' : 'text-[#4ade80]'}>
-            <pre className="whitespace-pre-wrap font-inherit leading-relaxed">{line.content}</pre>
+            <pre className="whitespace-pre-wrap font-inherit leading-relaxed break-words">{line.content}</pre>
           </div>
         ))}
         
         {timeLeft !== null && (
-          <div className="text-yellow-400 animate-pulse my-4 py-2 border-y border-yellow-400/20 font-bold">
+          <div className="text-yellow-400 animate-pulse my-3 py-1.5 border-y border-yellow-400/20 font-bold text-xs sm:text-sm">
             [ACTIVE FOCUS TIMER: {formatTime(timeLeft)}]
           </div>
         )}
 
-        <div className="flex items-center gap-2 mt-2">
-          <span className="text-white font-bold whitespace-nowrap">xboybx@macbook ~ %</span>
-          <form onSubmit={handleCommand} className="flex-1">
+        <div className="flex items-center gap-1.5 sm:gap-2 mt-2">
+          <span className="text-white font-bold whitespace-nowrap text-xs sm:text-sm">
+            {isMobile ? '~ %' : 'xboybx@macbook ~ %'}
+          </span>
+          <form onSubmit={handleCommand} className="flex-1 min-w-0">
             <input
               ref={inputRef}
               autoFocus
-              className="w-full bg-transparent border-none outline-none text-[#4ade80] font-mono focus:ring-0"
+              className="w-full bg-transparent border-none outline-none text-[#4ade80] font-mono focus:ring-0 p-0 text-xs sm:text-sm"
               value={input}
               onChange={(e) => setInput(e.target.value)}
               spellCheck="false"

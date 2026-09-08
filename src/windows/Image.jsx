@@ -5,7 +5,6 @@ import useWindowStore from '#store/window'
 import { useSiteStore } from '../store/siteStore'
 
 const isVideo = (url) => url && /\.(mp4|webm|mkv|ogg|mov|m4v)(\?.*)?$/i.test(url);
-const isGif = (url) => url && /\.gif(\?.*)?$/i.test(url);
 
 const ImageFile = () => {
   const { windows } = useWindowStore()
@@ -20,34 +19,32 @@ const ImageFile = () => {
     if (!imageUrl) return;
 
     if (!isVideo(imageUrl)) {
-      // For images/GIFs use CSS variable
       document.documentElement.style.setProperty(
         '--wallpaper-url', `url('${encodeURI(imageUrl).replace(/'/g, "%27")}')`
       );
     } else {
-      // For videos, clear CSS image and use the lofi gradient fallback
       const gradient = 'linear-gradient(135deg, #0f0c29 0%, #1a1a2e 30%, #16213e 60%, #0f3460 100%)';
       document.documentElement.style.setProperty('--wallpaper-url', gradient);
     }
 
-    // Persist globally to Supabase via siteStore
     await updateData({ ...data, wallpaperUrl: imageUrl });
   }
 
   return (
-    <div className="flex flex-col h-full">
-      <div id='window-header'>
+    <div className="flex flex-col h-full bg-[#1c1c1e] text-white">
+      <div id='window-header' className="flex items-center justify-between px-3 py-2 sm:px-4 sm:py-3 border-b border-gray-800 bg-[#2d2d2d] window-drag-handle flex-shrink-0">
         <WindowControls target="imgfile" />
-        <h2 className="flex items-center justify-center font-bold">{name}</h2>
+        <h2 className="font-bold text-xs sm:text-sm text-gray-200 truncate max-w-[40vw] text-center flex-1">{name}</h2>
         <button
+          type="button"
           onClick={setAsWallpaper}
-          className="px-2 py-1 text-xs rounded bg-blue-100 text-blue-700 hover:bg-blue-200 whitespace-nowrap"
+          className="px-2 py-1 text-[11px] sm:text-xs rounded-lg bg-blue-600 text-white hover:bg-blue-500 transition-colors whitespace-nowrap cursor-pointer flex-shrink-0"
           title="Set as Desktop Wallpaper"
         >
-          Set as Wallpaper
+          Set Wallpaper
         </button>
       </div>
-      <div className='flex-1 overflow-auto w-full h-full p-5 flex items-center justify-center bg-gray-100'>
+      <div className='flex-1 overflow-auto w-full h-full p-3 sm:p-6 flex items-center justify-center bg-black/90 min-h-0'>
         {imageUrl ? (
           isVideo(imageUrl) ? (
             <video
@@ -57,14 +54,14 @@ const ImageFile = () => {
               muted
               playsInline
               controls
-              className='max-w-full max-h-full rounded drop-shadow-2xl'
+              className='max-w-full max-h-full rounded-xl shadow-2xl object-contain'
             />
           ) : (
             <img
               src={imageUrl}
               alt={name}
               loading='lazy'
-              className='max-w-full max-h-full object-contain rounded drop-shadow-2xl'
+              className='max-w-full max-h-full object-contain rounded-xl shadow-2xl'
             />
           )
         ) : null}

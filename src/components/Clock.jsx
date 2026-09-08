@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-
-const isMobile = typeof window !== 'undefined' && window.innerWidth <= 640;
+import { useIsMobile } from '../hooks/useIsMobile';
 
 const Clock = React.memo(() => {
+  const isMobile = useIsMobile(640);
   const [time, setTime] = useState(() => getTimeString());
   const dateTimeRef = useRef(null);
   const dateTimePlaceholderRef = useRef(null);
@@ -18,29 +18,29 @@ const Clock = React.memo(() => {
   }
 
   useEffect(() => {
-    // Update time every 60 seconds
     const intervalId = setInterval(() => {
       setTime(getTimeString());
-    }, 60000); // 60 seconds
+    }, 60000);
 
     return () => clearInterval(intervalId);
   }, []);
 
   useEffect(() => {
-    // Skip drag functionality on mobile
     if (isMobile) return;
 
-    // Dynamically import GSAP only on desktop
+    let isMounted = true;
     Promise.all([
       import('gsap'),
       import('gsap/Draggable')
     ]).then(([{ gsap }, { Draggable }]) => {
+      if (!isMounted) return;
+      gsap.registerPlugin(Draggable);
+
       const dateTime = dateTimeRef.current;
       const dateTimePlaceholder = dateTimePlaceholderRef.current;
 
       if (!dateTime || !dateTimePlaceholder) return;
 
-      // Hide placeholder initially
       gsap.set(dateTimePlaceholder, { opacity: 0 });
 
       const snapThreshold = 500;
@@ -72,15 +72,16 @@ const Clock = React.memo(() => {
         }
       });
     });
-  }, []);
+
+    return () => { isMounted = false; };
+  }, [isMobile]);
 
   return (
     <>
-      <time ref={dateTimeRef}>
+      <time ref={dateTimeRef} className="text-xs sm:text-sm font-medium text-black select-none whitespace-nowrap">
         {time}
       </time>
       
-      {/* Placeholder for date & time */}
       {!isMobile && (
         <div className="datetime-placeholder" ref={dateTimePlaceholderRef}>
         </div>
