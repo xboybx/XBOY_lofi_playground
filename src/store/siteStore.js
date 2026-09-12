@@ -1,6 +1,13 @@
 import { create } from 'zustand';
 import { supabase } from '../supabaseClient';
 
+export const DEFAULT_WALLPAPERS = [
+  "https://ik.imagekit.io/vm8qsonrr/MAC%20lofi%20website%20wallpapers/Snow%20Angel.jpg",
+  "https://ik.imagekit.io/vm8qsonrr/MAC%20lofi%20website%20wallpapers/Snow%20bath_night.jpg",
+  "https://ik.imagekit.io/vm8qsonrr/MAC%20lofi%20website%20wallpapers/Car%20shot.jpg",
+  "https://ik.imagekit.io/vm8qsonrr/MAC%20lofi%20website%20wallpapers/Cable%20Car.jpg"
+];
+
 const defaultDiscover = {
   mainImage: "https://ik.imagekit.io/t8nfvprzb/Mac_os_lofi_site/Chill_study.mp4",
   subImage1: "https://ik.imagekit.io/mtkm3escy/Portfolio%20assets/midnight-drive.png?updatedAt=1764096599955",
@@ -13,7 +20,7 @@ const defaultDiscover = {
 };
 
 const defaultSiteData = {
-  wallpaperUrl: "", // Empty = show CSS gradient fallback
+  wallpaperUrl: DEFAULT_WALLPAPERS[0],
   about: {
     description: "welcome to my lofi space",
     avatarUrl: "/jely.png",
@@ -23,7 +30,7 @@ const defaultSiteData = {
     paragraph3: ""
   },
   music: [],
-  gallery: [],
+  gallery: DEFAULT_WALLPAPERS.map((url, i) => ({ id: i + 1, img: url })),
   discover: defaultDiscover,
   socials: {
     // Personal socials
@@ -82,10 +89,13 @@ export const useSiteStore = create((set, get) => ({
         socials.forEach(s => { socialMap[s.platform] = s.url; });
       }
 
+      const galleryItems = (gallery && gallery.length > 0)
+        ? gallery.map(g => ({ id: g.id, img: g.media_url }))
+        : DEFAULT_WALLPAPERS.map((url, i) => ({ id: i + 1, img: url }));
+
       set({
         data: {
-          // Use ?? so empty string from DB stays empty (not replaced by default)
-          wallpaperUrl: identity?.wallpaper_url ?? '',
+          wallpaperUrl: identity?.wallpaper_url || DEFAULT_WALLPAPERS[0],
           about: {
             subtitle: about?.subtitle || defaultSiteData.about.subtitle,
             avatarUrl: about?.avatar_url || defaultSiteData.about.avatarUrl,
@@ -121,10 +131,7 @@ export const useSiteStore = create((set, get) => ({
               isLatest
             };
           }),
-          gallery: (gallery || []).map(g => ({
-            id: g.id,
-            img: g.media_url
-          })),
+          gallery: galleryItems,
           discover: {
             ...defaultDiscover,
             ...(identity?.discover_data || {})

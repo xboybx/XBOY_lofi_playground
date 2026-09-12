@@ -1,6 +1,6 @@
 import React, { Suspense, lazy, useEffect, useState, useMemo } from 'react';
 import useWindowStore from '#store/window';
-import { useSiteStore } from './store/siteStore';
+import { useSiteStore, DEFAULT_WALLPAPERS } from './store/siteStore';
 import { useIsMobile } from './hooks/useIsMobile';
 
 // Lazy load components
@@ -47,10 +47,10 @@ const App = () => {
 
   // Combine global wallpaper and gallery items for cycling themes
   const allWallpapers = useMemo(() => {
-    if (!data) return [];
-    const globalBg = data.wallpaperUrl;
-    const galleryBgs = data.gallery?.map(g => g.img).filter(Boolean) || [];
-    return [globalBg, ...galleryBgs].filter((v, i, a) => v && v.trim() !== '' && a.indexOf(v) === i);
+    const globalBg = data?.wallpaperUrl;
+    const galleryBgs = data?.gallery?.map(g => g.img).filter(Boolean) || [];
+    const list = [globalBg, ...galleryBgs].filter((v, i, a) => v && v.trim() !== '' && a.indexOf(v) === i);
+    return list.length > 0 ? list : DEFAULT_WALLPAPERS;
   }, [data]);
 
   // Keep saved index within valid bounds
@@ -73,10 +73,10 @@ const App = () => {
   });
 
   // Read the active locally cycled wallpaper target
-  const rawTargetUrl = allWallpapers[bgIndex] || allWallpapers[0] || '';
+  const rawTargetUrl = allWallpapers[bgIndex] || allWallpapers[0] || DEFAULT_WALLPAPERS[0];
 
   const targetUrl = useMemo(() => {
-    if (!rawTargetUrl) return '';
+    if (!rawTargetUrl) return DEFAULT_WALLPAPERS[0];
     if (rawTargetUrl.includes('cloudinary.com') && rawTargetUrl.includes('/upload/')) {
       if (isVideoUrl(rawTargetUrl)) {
         return rawTargetUrl;
@@ -87,8 +87,8 @@ const App = () => {
     return rawTargetUrl;
   }, [rawTargetUrl]);
 
-  // Buffer state
-  const [activeUrl, setActiveUrl] = useState(targetUrl);
+  // Buffer state - initialize with targetUrl immediately for seamless first paint
+  const [activeUrl, setActiveUrl] = useState(() => rawTargetUrl || DEFAULT_WALLPAPERS[0]);
   const [prevUrl, setPrevUrl] = useState(null);
   const [bufferingUrl, setBufferingUrl] = useState(null);
 
@@ -160,7 +160,20 @@ const App = () => {
       );
     }
 
-    return <img key={url} src={url} alt="Wallpaper" className={classNames} style={styles} />;
+    return (
+      <img
+        key={url}
+        src={url}
+        alt="Wallpaper"
+        className={classNames}
+        style={styles}
+        onError={(e) => {
+          if (e.currentTarget.src !== '/images/default-wallpaper.jpg') {
+            e.currentTarget.src = '/images/default-wallpaper.jpg';
+          }
+        }}
+      />
+    );
   };
 
   useEffect(() => {
