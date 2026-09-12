@@ -162,15 +162,19 @@ const Welcome = React.memo(() => {
 
   return (
     <>
-      <section id="welcome" ref={welcomeContainerRef} className="w-full flex flex-col items-center justify-center text-center px-4 select-none">
-        <p ref={subtitleRef} className="w-full text-center">
+      <section
+        id="welcome"
+        ref={welcomeContainerRef}
+        className="fixed md:absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-full flex flex-col items-center justify-center text-center px-4 select-none pointer-events-none z-0"
+      >
+        <p ref={subtitleRef} className="w-full text-center flex flex-wrap justify-center items-center">
           {renderText(
             "welcome to my lofi space",
             "text-[11px] min-[340px]:text-xs sm:text-base md:text-2xl font-georama text-white/90 drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)] tracking-wider inline-block",
             100
           )}
         </p>
-        <h1 ref={titleRef} className="mt-1 sm:mt-4 w-full text-center">
+        <h1 ref={titleRef} className="mt-1 sm:mt-4 w-full text-center flex flex-wrap justify-center items-center">
           {renderText(
             "XBOY",
             "text-4xl min-[340px]:text-5xl sm:text-7xl md:text-8xl 3xl:text-9xl italic font-georama text-white drop-shadow-[0_4px_16px_rgba(0,0,0,0.8)] tracking-normal sm:tracking-wide inline-block" 
